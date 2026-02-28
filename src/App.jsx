@@ -151,16 +151,6 @@ function App() {
     }
   }, [lastDiscarded, playerHand]);
 
-  const handlePass = useCallback(() => {
-    setSelectedTile(null);
-    setCurrentPlayer(1);
-    setMessage('下家摸牌中...');
-    
-    setTimeout(() => {
-      aiPlay();
-    }, 1000);
-  }, []);
-
   const aiPlay = useCallback(() => {
     const newTiles = [...tiles];
     if (newTiles.length === 0) {
@@ -169,7 +159,7 @@ function App() {
       return;
     }
     
-    const aiDrawn = newTiles.shift();
+    newTiles.shift();
     setTiles(newTiles);
     
     const randomIndex = Math.floor(Math.random() * 13);
@@ -185,11 +175,30 @@ function App() {
     setMessage('轮到你行动了');
   }, [tiles]);
 
+  const handlePass = useCallback(() => {
+    setSelectedTile(null);
+    setCurrentPlayer(1);
+    setMessage('下家摸牌中...');
+    
+    setTimeout(() => {
+      aiPlay();
+    }, 1000);
+  }, []);
+
   useEffect(() => {
     if (selectedTile && hasDrawn && currentPlayer === 0) {
       handleDiscard();
     }
   }, [selectedTile, hasDrawn, currentPlayer, handleDiscard]);
+
+  useEffect(() => {
+    if (gameStarted && currentPlayer === 0 && !hasDrawn) {
+      const timer = setTimeout(() => {
+        drawTile();
+      }, 600);
+      return () => clearTimeout(timer);
+    }
+  }, [gameStarted, currentPlayer, hasDrawn, drawTile]);
 
   const opponents = useMemo(() => ({
     top: { name: '上家', handCount: 13 },

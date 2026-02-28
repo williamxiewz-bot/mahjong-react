@@ -2,75 +2,138 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 42px;
-  height: 56px;
-  background: linear-gradient(145deg, #fefefe 0%, #e8e8e8 100%);
-  border-radius: 4px;
+  width: 56px;
+  height: 74px;
+  background: linear-gradient(145deg, #fefefe 0%, #f0ebe0 100%);
+  border-radius: 6px;
   box-shadow: 
-    0 2px 4px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    0 3px 6px rgba(0, 0, 0, 0.35),
+    inset 0 2px 0 rgba(255, 255, 255, 0.9),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.05);
   cursor: pointer;
-  font-size: 32px;
+  font-size: 42px;
   transition: all 0.15s ease;
   user-select: none;
-  border: 1px solid #ccc;
+  border: 1px solid #d4c8b0;
   position: relative;
 }
 
 .tile::before {
   content: '';
   position: absolute;
-  top: 2px;
-  left: 2px;
-  right: 2px;
-  height: 8px;
-  background: linear-gradient(180deg, rgba(255,255,255,0.6) 0%, transparent 100%);
-  border-radius: 2px 2px 0 0;
+  top: 3px;
+  left: 3px;
+  right: 3px;
+  height: 12px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.7) 0%, transparent 100%);
+  border-radius: 3px 3px 0 0;
+  pointer-events: none;
+}
+
+.tile::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.08) 100%);
+  border-radius: 0 0 6px 6px;
+  pointer-events: none;
 }
 
 .tile:hover {
-  transform: translateY(-4px);
+  transform: translateY(-6px);
   box-shadow: 
-    0 6px 12px rgba(0, 0, 0, 0.35),
-    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    0 10px 20px rgba(0, 0, 0, 0.4),
+    inset 0 2px 0 rgba(255, 255, 255, 0.9),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.05);
 }
 
 .tile.selected {
-  transform: translateY(-12px);
-  background: linear-gradient(145deg, #fff5d4 0%, #ffe4a0 100%);
+  transform: translateY(-16px);
+  background: linear-gradient(145deg, #fff8e0 0%, #ffdd70 100%);
   box-shadow: 
-    0 8px 16px rgba(255, 200, 0, 0.4),
-    0 0 0 2px #ffa500;
+    0 12px 24px rgba(255, 180, 0, 0.5),
+    0 0 0 3px #ff9500,
+    inset 0 2px 0 rgba(255, 255, 255, 0.9);
 }
 
 .tile.face-down {
-  background: linear-gradient(145deg, #4a6741 0%, #3d5636 100%);
+  background: linear-gradient(145deg, #5a7a50 0%, #3d5636 100%);
+  border: 1px solid #4a6741;
   cursor: default;
+}
+
+.tile.face-down::before {
+  background: linear-gradient(180deg, rgba(255,255,255,0.15) 0%, transparent 100%);
 }
 
 .tile.face-down:hover {
   transform: none;
   box-shadow: 
-    0 2px 4px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    0 3px 6px rgba(0, 0, 0, 0.35),
+    inset 0 2px 0 rgba(255, 255, 255, 0.1);
 }
 
 .tile.small {
-  width: 28px;
-  height: 38px;
-  font-size: 20px;
+  width: 38px;
+  height: 50px;
+  font-size: 26px;
+  border-radius: 4px;
 }
 
 .tile.small::before {
-  height: 5px;
+  height: 6px;
 }
 
 .tile.large {
-  width: 52px;
-  height: 70px;
-  font-size: 40px;
+  width: 68px;
+  height: 90px;
+  font-size: 52px;
+  border-radius: 8px;
 }
 
 .tile.large::before {
-  height: 10px;
+  height: 14px;
+}
+
+@media (max-width: 768px) {
+  .tile {
+    width: 42px;
+    height: 56px;
+    font-size: 32px;
+  }
+  
+  .tile.small {
+    width: 30px;
+    height: 40px;
+    font-size: 20px;
+  }
+  
+  .tile.large {
+    width: 52px;
+    height: 70px;
+    font-size: 40px;
+  }
+}
+
+@media (max-width: 480px) {
+  .tile {
+    width: 36px;
+    height: 48px;
+    font-size: 26px;
+  }
+  
+  .tile.small {
+    width: 26px;
+    height: 35px;
+    font-size: 16px;
+  }
+  
+  .tile.large {
+    width: 46px;
+    height: 62px;
+    font-size: 34px;
+  }
 }
