@@ -1,0 +1,45 @@
+.player-hand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.hand-tiles {
+  display: flex;
+  gap: 2px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.melds {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.meld {
+  display: flex;
+  gap: 1px;
+}
+
+.meld.peng {
+  border: 2px solid #e74c3c;
+  border-radius: 4px;
+  padding: 2px;
+  background: rgba(231, 76, 60, 0.1);
+}
+
+.meld.gang {
+  border: 2px solid #f39c12;
+  border-radius: 4px;
+  padding: 2px;
+  background: rgba(243, 156, 18, 0.1);
+}
+
+.meld.chi {
+  border: 2px solid #3498db;
+  border-radius: 4px;
+  padding: 2px;
+  background: rgba(52, 152, 219, 0.1);
+}
