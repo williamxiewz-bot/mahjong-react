@@ -1,30 +1,42 @@
+import { memo, useMemo, useCallback } from 'react';
 import { getTileChar } from '../mahjongGame';
 import './TableArea.css';
 
-function TableArea({ discardedTiles, lastDiscarded, onTileClick }) {
-  const renderTile = (tile, index) => {
+const TableArea = memo(function TableArea({ discardedTiles, lastDiscarded, onTileClick }) {
+  const handleTileClick = useCallback((tile) => {
+    if (onTileClick) {
+      onTileClick(tile);
+    }
+  }, [onTileClick]);
+
+  const rows = useMemo(() => {
+    const result = [[], [], [], [], [], []];
+    discardedTiles.forEach((tile, index) => {
+      result[index % 6].push({ tile, index });
+    });
+    return result;
+  }, [discardedTiles]);
+
+  const remainingCount = useMemo(() => 136 - discardedTiles.length, [discardedTiles.length]);
+
+  const renderTile = useCallback((tile, index) => {
     const isLast = lastDiscarded?.id === tile.id;
     return (
       <div 
         key={`${tile.id}-${index}`}
         className={`discarded-tile ${isLast ? 'last-discarded' : ''}`}
-        onClick={() => onTileClick && onTileClick(tile)}
+        onClick={() => handleTileClick(tile)}
       >
         {getTileChar(tile)}
       </div>
     );
-  };
-
-  const rows = [[], [], [], [], [], []];
-  discardedTiles.forEach((tile, index) => {
-    rows[index % 6].push({ tile, index });
-  });
+  }, [lastDiscarded, handleTileClick]);
 
   return (
     <div className="table-area">
       <div className="table-center">
-        <div className="mahjong-logo">🀄</div>
-        <div className="dice-area">🎲</div>
+        <div className="mahjong-logo" aria-hidden="true">🀄</div>
+        <div className="dice-area" aria-hidden="true">🎲</div>
       </div>
       <div className="discards">
         {rows.map((row, rowIndex) => (
@@ -34,10 +46,10 @@ function TableArea({ discardedTiles, lastDiscarded, onTileClick }) {
         ))}
       </div>
       <div className="remaining-count">
-        剩余: {136 - discardedTiles.length} 🀄
+        剩余: {remainingCount} 🀄
       </div>
     </div>
   );
-}
+});
 
 export default TableArea;

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { 
   createTiles, 
   shuffleTiles, 
@@ -16,6 +16,7 @@ import ActionButtons from './components/ActionButtons';
 import './App.css';
 
 function App() {
+  const [isLoading, setIsLoading] = useState(false);
   const [tiles, setTiles] = useState([]);
   const [playerHand, setPlayerHand] = useState([]);
   const [discardedTiles, setDiscardedTiles] = useState([]);
@@ -30,27 +31,31 @@ function App() {
   const [gameStarted, setGameStarted] = useState(false);
   const [message, setMessage] = useState('');
 
-  const startGame = () => {
-    const allTiles = shuffleTiles(createTiles());
-    setTiles(allTiles);
-    
-    const playerTiles = sortHand(allTiles.slice(0, 13));
-    setPlayerHand(playerTiles);
-    setLastDrawn(allTiles[13]);
-    
-    setDiscardedTiles([]);
-    setSelectedTile(null);
-    setLastDiscarded(null);
-    setCurrentPlayer(0);
-    setHasDrawn(false);
-    setPengs([]);
-    setGangs([]);
-    setChis([]);
-    setGameStarted(true);
-    setMessage('游戏开始！请摸牌');
-  };
+  const startGame = useCallback(() => {
+    setIsLoading(true);
+    setTimeout(() => {
+      const allTiles = shuffleTiles(createTiles());
+      setTiles(allTiles);
+      
+      const playerTiles = sortHand(allTiles.slice(0, 13));
+      setPlayerHand(playerTiles);
+      setLastDrawn(allTiles[13]);
+      
+      setDiscardedTiles([]);
+      setSelectedTile(null);
+      setLastDiscarded(null);
+      setCurrentPlayer(0);
+      setHasDrawn(false);
+      setPengs([]);
+      setGangs([]);
+      setChis([]);
+      setGameStarted(true);
+      setMessage('游戏开始！请摸牌');
+      setIsLoading(false);
+    }, 300);
+  }, []);
 
-  const drawTile = () => {
+  const drawTile = useCallback(() => {
     if (currentPlayer !== 0 || hasDrawn) return;
     
     const newTiles = [...tiles];
@@ -61,14 +66,15 @@ function App() {
     setLastDrawn(drawnTile);
     setHasDrawn(true);
     
-    if (checkHu([...playerHand, drawnTile])) {
+    const newHand = [...playerHand, drawnTile];
+    if (checkHu(newHand)) {
       setMessage('可以胡牌！');
     } else {
       setMessage('请选择要打出的牌');
     }
-  };
+  }, [currentPlayer, hasDrawn, tiles, playerHand]);
 
-  const discardTile = (tile) => {
+  const discardTile = useCallback((tile) => {
     if (currentPlayer !== 0 || !hasDrawn) return;
     
     const newHand = playerHand.filter(t => t.id !== tile.id);
@@ -84,28 +90,28 @@ function App() {
     setTimeout(() => {
       aiPlay();
     }, 1000);
-  };
+  }, [currentPlayer, hasDrawn, playerHand]);
 
-  const handleTileClick = (tile) => {
+  const handleTileClick = useCallback((tile) => {
     if (currentPlayer === 0 && hasDrawn) {
       setSelectedTile(tile);
     }
-  };
+  }, [currentPlayer, hasDrawn]);
 
-  const handleDiscard = () => {
+  const handleDiscard = useCallback(() => {
     if (selectedTile) {
       discardTile(selectedTile);
     }
-  };
+  }, [selectedTile, discardTile]);
 
-  const handleHu = () => {
+  const handleHu = useCallback(() => {
     if (checkHu(playerHand)) {
       setMessage('🎉 胡牌了！恭喜！');
       setGameStarted(false);
     }
-  };
+  }, [playerHand]);
 
-  const handlePeng = () => {
+  const handlePeng = useCallback(() => {
     if (!lastDiscarded || !canPeng(playerHand, lastDiscarded)) return;
     
     const pengTiles = [
@@ -121,9 +127,9 @@ function App() {
     setLastDiscarded(null);
     setHasDrawn(true);
     setMessage('碰了！请打出一张牌');
-  };
+  }, [lastDiscarded, playerHand]);
 
-  const handleGang = () => {
+  const handleGang = useCallback(() => {
     if (!lastDrawn || !canGang(playerHand, lastDrawn)) return;
     
     const gangTiles = playerHand.filter(t => t.suit === lastDrawn.suit && t.num === lastDrawn.num);
@@ -134,18 +140,18 @@ function App() {
     setHasDrawn(false);
     setMessage('杠了！继续摸牌');
     drawTile();
-  };
+  }, [lastDrawn, playerHand, drawTile]);
 
-  const handleChi = () => {
+  const handleChi = useCallback(() => {
     if (!lastDiscarded || !canChi(playerHand, lastDiscarded)) return;
     
     const options = findChiOptions(playerHand, lastDiscarded);
     if (options.length > 0) {
       setMessage('吃牌选项: ' + options.length + ' 种');
     }
-  };
+  }, [lastDiscarded, playerHand]);
 
-  const handlePass = () => {
+  const handlePass = useCallback(() => {
     setSelectedTile(null);
     setCurrentPlayer(1);
     setMessage('下家摸牌中...');
@@ -153,9 +159,9 @@ function App() {
     setTimeout(() => {
       aiPlay();
     }, 1000);
-  };
+  }, []);
 
-  const aiPlay = () => {
+  const aiPlay = useCallback(() => {
     const newTiles = [...tiles];
     if (newTiles.length === 0) {
       setMessage('流局！');
@@ -177,36 +183,50 @@ function App() {
     setLastDiscarded(aiDiscard);
     setCurrentPlayer(0);
     setMessage('轮到你行动了');
-  };
+  }, [tiles]);
 
   useEffect(() => {
     if (selectedTile && hasDrawn && currentPlayer === 0) {
       handleDiscard();
     }
-  }, [selectedTile]);
+  }, [selectedTile, hasDrawn, currentPlayer, handleDiscard]);
+
+  const opponents = useMemo(() => ({
+    top: { name: '上家', handCount: 13 },
+    left: { name: '对家', handCount: 13 },
+    right: { name: '下家', handCount: 13 }
+  }), []);
+
+  const canHu = useMemo(() => checkHu(playerHand), [playerHand]);
+  const canPengResult = useMemo(() => lastDiscarded && canPeng(playerHand, lastDiscarded), [lastDiscarded, playerHand]);
+  const canGangResult = useMemo(() => lastDrawn && canGang(playerHand, lastDrawn), [lastDrawn, playerHand]);
+  const canChiResult = useMemo(() => lastDiscarded && canChi(playerHand, lastDiscarded), [lastDiscarded, playerHand]);
 
   return (
     <div className="mahjong-game">
       <div className="game-header">
         <h1>🀄 麻将游戏 🀄</h1>
-        {message && <div className="message">{message}</div>}
+        {message && <div className="message" role="status" aria-live="polite">{message}</div>}
       </div>
       
-      {!gameStarted ? (
+      {isLoading && (
+        <div className="loading-overlay" aria-live="polite">
+          <div className="loading-spinner"></div>
+          <p>正在加载游戏...</p>
+        </div>
+      )}
+      
+      {!gameStarted && !isLoading && (
         <div className="start-screen">
-          <button className="start-btn" onClick={startGame}>
+          <button className="start-btn" onClick={startGame} aria-label="开始游戏">
             开始游戏
           </button>
         </div>
-      ) : (
+      )}
+      
+      {gameStarted && !isLoading && (
         <>
-          <Opponents 
-            opponents={{
-              top: { name: '上家', handCount: 13 },
-              left: { name: '对家', handCount: 13 },
-              right: { name: '下家', handCount: 13 }
-            }} 
-          />
+          <Opponents opponents={opponents} />
           
           <TableArea 
             discardedTiles={discardedTiles}
@@ -232,10 +252,10 @@ function App() {
             onChi={handleChi}
             onPass={handlePass}
             onDraw={drawTile}
-            canHu={checkHu(playerHand)}
-            canPeng={lastDiscarded && canPeng(playerHand, lastDiscarded)}
-            canGang={lastDrawn && canGang(playerHand, lastDrawn)}
-            canChi={lastDiscarded && canChi(playerHand, lastDiscarded)}
+            canHu={canHu}
+            canPeng={canPengResult}
+            canGang={canGangResult}
+            canChi={canChiResult}
             isMyTurn={currentPlayer === 0}
             hasDrawn={hasDrawn}
           />

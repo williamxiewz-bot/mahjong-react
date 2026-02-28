@@ -1,10 +1,29 @@
+import { memo, useMemo } from 'react';
 import './Opponents.css';
 
-function Opponent({ name, direction, handCount, lastDraw, melds }) {
-  const renderTiles = () => {
-    const tiles = [];
+const Opponent = memo(function Opponent({ name, direction, handCount, lastDraw }) {
+  const positionClass = useMemo(() => {
+    switch (direction) {
+      case 'top': return 'opponent-top';
+      case 'left': return 'opponent-left';
+      case 'right': return 'opponent-right';
+      default: return '';
+    }
+  }, [direction]);
+
+  const rotation = useMemo(() => {
+    switch (direction) {
+      case 'top': return 'rotate(180deg)';
+      case 'left': return 'rotate(90deg)';
+      case 'right': return 'rotate(-90deg)';
+      default: return '';
+    }
+  }, [direction]);
+
+  const tiles = useMemo(() => {
+    const result = [];
     for (let i = 0; i < handCount; i++) {
-      tiles.push(
+      result.push(
         <div 
           key={i} 
           className={`opponent-tile ${i === handCount - 1 && lastDraw ? 'just-drawn' : ''}`}
@@ -13,41 +32,23 @@ function Opponent({ name, direction, handCount, lastDraw, melds }) {
         </div>
       );
     }
-    return tiles;
-  };
-
-  const getPositionClass = () => {
-    switch (direction) {
-      case 'top': return 'opponent-top';
-      case 'left': return 'opponent-left';
-      case 'right': return 'opponent-right';
-      default: return '';
-    }
-  };
-
-  const getRotation = () => {
-    switch (direction) {
-      case 'top': return 'rotate(180deg)';
-      case 'left': return 'rotate(90deg)';
-      case 'right': return 'rotate(-90deg)';
-      default: return '';
-    }
-  };
+    return result;
+  }, [handCount, lastDraw]);
 
   return (
-    <div className={`opponent ${getPositionClass()}`}>
+    <div className={`opponent ${positionClass}`}>
       <div className="opponent-info">
         <span className="opponent-name">{name}</span>
         <span className="opponent-count">{handCount} 🀄</span>
       </div>
-      <div className="opponent-hand" style={{ transform: getRotation() }}>
-        {renderTiles()}
+      <div className="opponent-hand" style={{ transform: rotation }}>
+        {tiles}
       </div>
     </div>
   );
-}
+});
 
-function Opponents({ opponents }) {
+const Opponents = memo(function Opponents({ opponents }) {
   return (
     <div className="opponents-container">
       <Opponent 
@@ -70,6 +71,6 @@ function Opponents({ opponents }) {
       />
     </div>
   );
-}
+});
 
 export default Opponents;
