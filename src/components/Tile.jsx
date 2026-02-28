@@ -1,4 +1,4 @@
-import { getTileChar } from './mahjongGame';
+import { getTileChar } from '../mahjongGame';
 import './Tile.css';
 
 function Tile({ tile, selected, onClick, faceDown, size }) {
