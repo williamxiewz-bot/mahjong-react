@@ -204,9 +204,21 @@ function App() {
 
   // 玩家吃牌 - 选择吃牌组合
   const handleChi = useCallback(() => {
-    if (!lastDiscarded || !canChi(playerHand, lastDiscarded)) return;
+    console.log('handleChi called', { lastDiscarded, playerHand: playerHand.length });
+    
+    if (!lastDiscarded) {
+      console.log('no lastDiscarded');
+      return;
+    }
+    
+    const canChiNow = canChi(playerHand, lastDiscarded);
+    console.log('canChi result:', canChiNow);
+    
+    if (!canChiNow) return;
     
     const options = findChiOptions(playerHand, lastDiscarded);
+    console.log('chi options:', options.length);
+    
     if (options.length > 0) {
       setChiOptions(options);
       setMessage('请选择吃牌组合 (点击)');
