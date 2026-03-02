@@ -41,6 +41,9 @@ function App() {
       setPlayerHand(playerTiles);
       setLastDrawn(allTiles[13]);
       
+      // 初始化 AI 手牌
+      setAiHand(allTiles.slice(14, 27));
+      
       setDiscardedTiles([]);
       setSelectedTile(null);
       setLastDiscarded(null);
@@ -151,6 +154,9 @@ function App() {
     }
   }, [lastDiscarded, playerHand]);
 
+  // AI 手牌状态
+  const [aiHand, setAiHand] = useState([]);
+
   const aiPlay = useCallback(() => {
     const newTiles = [...tiles];
     if (newTiles.length === 0) {
@@ -159,18 +165,25 @@ function App() {
       return;
     }
     
-    newTiles.shift();
+    // AI 摸牌
+    const drawnTile = newTiles.shift();
     setTiles(newTiles);
     
-    const randomIndex = Math.floor(Math.random() * 13);
-    const aiHand = [];
-    for (let i = 0; i < 13; i++) {
-      aiHand.push({ suit: (i % 3) + 1, num: (i % 9) + 1, id: `ai-${i}` });
-    }
-    const aiDiscard = aiHand[randomIndex];
+    // 更新 AI 手牌
+    setAiHand(prev => {
+      const updated = [...prev, drawnTile];
+      // AI 随机打一张牌
+      const discardIndex = Math.floor(Math.random() * updated.length);
+      const aiDiscard = updated[discardIndex];
+      
+      // 更新弃牌区和最后弃牌
+      setDiscardedTiles(prevTiles => [...prevTiles, aiDiscard]);
+      setLastDiscarded(aiDiscard);
+      
+      // 移除打出的牌
+      return updated.filter((_, i) => i !== discardIndex);
+    });
     
-    setDiscardedTiles(prev => [...prev, aiDiscard]);
-    setLastDiscarded(aiDiscard);
     setCurrentPlayer(0);
     setMessage('轮到你行动了');
   }, [tiles]);
@@ -199,6 +212,47 @@ function App() {
       return () => clearTimeout(timer);
     }
   }, [gameStarted, currentPlayer, hasDrawn, drawTile]);
+
+  // 键盘快捷键
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (!gameStarted || currentPlayer !== 0) return;
+      
+      switch (e.key) {
+        case 'h':
+        case 'H':
+          if (canHu) handleHu();
+          break;
+        case 'p':
+        case 'P':
+          if (canPengResult) handlePeng();
+          break;
+        case 'g':
+        case 'G':
+          if (canGangResult) handleGang();
+          break;
+        case 'c':
+        case 'C':
+          if (canChiResult) handleChi();
+          break;
+        case ' ':
+        case 'Enter':
+          if (!hasDrawn) {
+            e.preventDefault();
+            drawTile();
+          }
+          break;
+        case 'Escape':
+          handlePass();
+          break;
+        default:
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [gameStarted, currentPlayer, canHu, canPengResult, canGangResult, canChiResult, hasDrawn, handleHu, handlePeng, handleGang, handleChi, handlePass, drawTile]);
 
   const opponents = useMemo(() => ({
     top: { name: '上家', handCount: 13 },

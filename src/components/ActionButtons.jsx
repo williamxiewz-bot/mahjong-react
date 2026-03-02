@@ -21,7 +21,7 @@ const ActionButtons = memo(function ActionButtons({
     if (isMyTurn && !hasDrawn) {
       btns.push(
         <button key="draw" className="action-btn draw-btn" onClick={onDraw}>
-          摸牌
+          摸牌 <span className="key-hint">Space</span>
         </button>
       );
     }
@@ -29,7 +29,7 @@ const ActionButtons = memo(function ActionButtons({
     if (canHu) {
       btns.push(
         <button key="hu" className="action-btn hu-btn" onClick={onHu}>
-          胡 🀅
+          胡 🀅 <span className="key-hint">H</span>
         </button>
       );
     }
@@ -37,7 +37,7 @@ const ActionButtons = memo(function ActionButtons({
     if (canPeng) {
       btns.push(
         <button key="peng" className="action-btn peng-btn" onClick={onPeng}>
-          碰
+          碰 <span className="key-hint">P</span>
         </button>
       );
     }
@@ -45,7 +45,7 @@ const ActionButtons = memo(function ActionButtons({
     if (canGang) {
       btns.push(
         <button key="gang" className="action-btn gang-btn" onClick={onGang}>
-          杠
+          杠 <span className="key-hint">G</span>
         </button>
       );
     }
@@ -53,7 +53,7 @@ const ActionButtons = memo(function ActionButtons({
     if (canChi) {
       btns.push(
         <button key="chi" className="action-btn chi-btn" onClick={onChi}>
-          吃
+          吃 <span className="key-hint">C</span>
         </button>
       );
     }
@@ -61,7 +61,7 @@ const ActionButtons = memo(function ActionButtons({
     if (isMyTurn && hasDrawn) {
       btns.push(
         <button key="pass" className="action-btn pass-btn" onClick={onPass}>
-          过
+          过 <span className="key-hint">Esc</span>
         </button>
       );
     }

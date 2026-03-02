@@ -158,8 +158,20 @@ export function findPairs(hand) {
   return pairs;
 }
 
+// 胡牌检测缓存
+const huCache = new Map();
+
+function getCacheKey(hand) {
+  return hand.map(t => `${t.suit}-${t.num}`).sort().join(',');
+}
+
 export function checkHu(hand) {
   if (hand.length !== 14) return false;
+
+  const cacheKey = getCacheKey(hand);
+  if (huCache.has(cacheKey)) {
+    return huCache.get(cacheKey);
+  }
 
   const sorted = [...hand].sort((a, b) => {
     if (a.suit !== b.suit) return a.suit - b.suit;
@@ -216,5 +228,12 @@ export function checkHu(hand) {
     return false;
   };
 
-  return tryRemovePair(counts);
+  const result = tryRemovePair(counts);
+  huCache.set(cacheKey, result);
+  return result;
+}
+
+// 清除胡牌缓存
+export function clearHuCache() {
+  huCache.clear();
 }
