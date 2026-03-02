@@ -329,25 +329,20 @@ function App() {
   useEffect(() => {
     if (!gameStarted || !isPlayerTurn) return;
     
-    // 如果有吃牌选择，不自动摸牌
     if (chiOptions.length > 0) return;
     
     const timer = setTimeout(() => {
-      // 如果没有摸牌且没有打出去的牌，自动摸牌
       if (!hasDrawn && !playerLastDrawn) {
         drawTile();
         return;
       }
       
-      // 检查是否可以胡/杠/碰/吃
       const canHuNow = checkHu(playerHand);
       const canPengNow = lastDiscarded ? canPeng(playerHand, lastDiscarded) : false;
       const canGangNow = playerLastDrawn ? canGang(playerHand, playerLastDrawn) : false;
       const canChiNow = lastDiscarded ? canChi(playerHand, lastDiscarded) : false;
       
-      // 如果什么都没做，自动摸牌
       if (!canHuNow && !canPengNow && !canGangNow && !canChiNow && hasDrawn && !playerLastDrawn) {
-        // 需要打牌但没选，自动选第一张
         if (playerHand.length > 0) {
           setSelectedTile(playerHand[0]);
         }
@@ -356,6 +351,47 @@ function App() {
     
     return () => clearTimeout(timer);
   }, [gameStarted, isPlayerTurn, hasDrawn, playerHand, playerLastDrawn, lastDiscarded, chiOptions, drawTile]);
+
+  // 键盘快捷键
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!gameStarted || !isPlayerTurn) return;
+      
+      switch (e.key) {
+        case 'h':
+        case 'H':
+          if (canHu) handleHu();
+          break;
+        case 'p':
+        case 'P':
+          if (canPengResult) handlePeng();
+          break;
+        case 'g':
+        case 'G':
+          if (canGangResult) handleGang();
+          break;
+        case 'c':
+        case 'C':
+          if (canChiResult) handleChi();
+          break;
+        case ' ':
+        case 'Enter':
+          if (!hasDrawn) {
+            e.preventDefault();
+            drawTile();
+          }
+          break;
+        case 'Escape':
+          handlePass();
+          break;
+        default:
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [gameStarted, isPlayerTurn, canHu, canPengResult, canGangResult, canChiResult, hasDrawn, handleHu, handlePeng, handleGang, handleChi, handlePass, drawTile]);
 
   // 计算能力
   const canHu = useMemo(() => checkHu(playerHand), [playerHand]);

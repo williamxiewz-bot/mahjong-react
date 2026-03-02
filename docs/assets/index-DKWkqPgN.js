@@ -13107,6 +13107,41 @@ function App() {
     }, 500);
     return () => clearTimeout(timer);
   }, [gameStarted, isPlayerTurn, hasDrawn, playerHand, playerLastDrawn, lastDiscarded, chiOptions, drawTile]);
+  reactExports.useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (!gameStarted || !isPlayerTurn) return;
+      switch (e.key) {
+        case "h":
+        case "H":
+          if (canHu) handleHu();
+          break;
+        case "p":
+        case "P":
+          if (canPengResult) handlePeng();
+          break;
+        case "g":
+        case "G":
+          if (canGangResult) handleGang();
+          break;
+        case "c":
+        case "C":
+          if (canChiResult) handleChi();
+          break;
+        case " ":
+        case "Enter":
+          if (!hasDrawn) {
+            e.preventDefault();
+            drawTile();
+          }
+          break;
+        case "Escape":
+          handlePass();
+          break;
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [gameStarted, isPlayerTurn, canHu, canPengResult, canGangResult, canChiResult, hasDrawn, handleHu, handlePeng, handleGang, handleChi, handlePass, drawTile]);
   const canHu = reactExports.useMemo(() => checkHu(playerHand), [playerHand]);
   const canPengResult = reactExports.useMemo(() => lastDiscarded ? canPeng(playerHand, lastDiscarded) : false, [lastDiscarded, playerHand]);
   const canGangResult = reactExports.useMemo(() => playerLastDrawn ? canGang(playerHand, playerLastDrawn) : false, [playerLastDrawn, playerHand]);
