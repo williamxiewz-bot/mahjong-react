@@ -322,6 +322,12 @@ function App() {
     return () => clearTimer();
   }, []);
 
+  // 计算能力 - 必须在键盘快捷键之前定义
+  const canHu = useMemo(() => checkHu(playerHand), [playerHand]);
+  const canPengResult = useMemo(() => lastDiscarded ? canPeng(playerHand, lastDiscarded) : false, [lastDiscarded, playerHand]);
+  const canGangResult = useMemo(() => playerLastDrawn ? canGang(playerHand, playerLastDrawn) : false, [playerLastDrawn, playerHand]);
+  const canChiResult = useMemo(() => lastDiscarded ? canChi(playerHand, lastDiscarded) : false, [lastDiscarded, playerHand]);
+
   // 键盘快捷键
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -362,12 +368,6 @@ function App() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [gameStarted, isPlayerTurn, canHu, canPengResult, canGangResult, canChiResult, hasDrawn, handleHu, handlePeng, handleGang, handleChi, handlePass, drawTile]);
-
-  // 计算能力
-  const canHu = useMemo(() => checkHu(playerHand), [playerHand]);
-  const canPengResult = useMemo(() => lastDiscarded ? canPeng(playerHand, lastDiscarded) : false, [lastDiscarded, playerHand]);
-  const canGangResult = useMemo(() => playerLastDrawn ? canGang(playerHand, playerLastDrawn) : false, [playerLastDrawn, playerHand]);
-  const canChiResult = useMemo(() => lastDiscarded ? canChi(playerHand, lastDiscarded) : false, [lastDiscarded, playerHand]);
 
   // 对手信息
   const opponents = useMemo((): Record<string, OpponentInfo> => ({
