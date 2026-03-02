@@ -13095,6 +13095,10 @@ function App() {
       setTimeout(() => aiPlay(nextPlayer), 800);
     }
   }, [aiHands]);
+  const canHu = reactExports.useMemo(() => checkHu(playerHand), [playerHand]);
+  const canPengResult = reactExports.useMemo(() => lastDiscarded ? canPeng(playerHand, lastDiscarded) : false, [lastDiscarded, playerHand]);
+  const canGangResult = reactExports.useMemo(() => playerLastDrawn ? canGang(playerHand, playerLastDrawn) : false, [playerLastDrawn, playerHand]);
+  const canChiResult = reactExports.useMemo(() => lastDiscarded ? canChi(playerHand, lastDiscarded) : false, [lastDiscarded, playerHand]);
   reactExports.useEffect(() => {
     if (!gameStarted || !isPlayerTurn) return;
     if (chiOptions.length > 0) return;
@@ -13150,10 +13154,6 @@ function App() {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [gameStarted, isPlayerTurn, canHu, canPengResult, canGangResult, canChiResult, hasDrawn, handleHu, handlePeng, handleGang, handleChi, handlePass, drawTile]);
-  const canHu = reactExports.useMemo(() => checkHu(playerHand), [playerHand]);
-  const canPengResult = reactExports.useMemo(() => lastDiscarded ? canPeng(playerHand, lastDiscarded) : false, [lastDiscarded, playerHand]);
-  const canGangResult = reactExports.useMemo(() => playerLastDrawn ? canGang(playerHand, playerLastDrawn) : false, [playerLastDrawn, playerHand]);
-  const canChiResult = reactExports.useMemo(() => lastDiscarded ? canChi(playerHand, lastDiscarded) : false, [lastDiscarded, playerHand]);
   const opponents = reactExports.useMemo(() => ({
     left: { name: "上家 AI", handCount: 13, position: "left" },
     opposite: { name: "对家 AI", handCount: 13, position: "opposite" },
