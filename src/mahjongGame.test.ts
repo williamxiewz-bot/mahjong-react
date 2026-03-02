@@ -598,3 +598,168 @@ describe('麻将游戏核心逻辑', () => {
     })
   })
 })
+
+describe('吃牌组合查找 (findChiOptions)', () => {
+  it('找到正确的吃牌组合', () => {
+    const hand: Tile[] = [
+      { suit: 1, num: 1, id: '1-1-0' },
+      { suit: 1, num: 3, id: '1-3-0' },
+    ];
+    const tile: Tile = { suit: 1, num: 2, id: '1-2-0' };
+    const options = findChiOptions(hand, tile);
+    expect(options.length).toBeGreaterThan(0);
+  });
+
+  it('没有吃牌组合时返回空数组', () => {
+    const hand: Tile[] = [
+      { suit: 1, num: 1, id: '1-1-0' },
+      { suit: 1, num: 5, id: '1-5-0' },
+    ];
+    const tile: Tile = { suit: 1, num: 3, id: '1-3-0' };
+    const options = findChiOptions(hand, tile);
+    expect(options).toHaveLength(0);
+  });
+
+  it('字牌不能吃', () => {
+    const hand: Tile[] = [
+      { suit: 4, num: 1, id: '4-1-0' },
+      { suit: 4, num: 3, id: '4-3-0' },
+    ];
+    const tile: Tile = { suit: 4, num: 2, id: '4-2-0' };
+    const options = findChiOptions(hand, tile);
+    expect(options).toHaveLength(0);
+  });
+});
+
+describe('碰牌判断 (canPeng)', () => {
+  it('两张相同牌可以碰', () => {
+    const hand: Tile[] = [
+      { suit: 1, num: 1, id: '1-1-0' },
+      { suit: 1, num: 1, id: '1-1-1' },
+    ];
+    const tile: Tile = { suit: 1, num: 1, id: '1-1-2' };
+    expect(canPeng(hand, tile)).toBe(true);
+  });
+
+  it('一张相同牌不能碰', () => {
+    const hand: Tile[] = [
+      { suit: 1, num: 1, id: '1-1-0' },
+    ];
+    const tile: Tile = { suit: 1, num: 1, id: '1-1-1' };
+    expect(canPeng(hand, tile)).toBe(false);
+  });
+
+  it('不同花色不能碰', () => {
+    const hand: Tile[] = [
+      { suit: 1, num: 1, id: '1-1-0' },
+      { suit: 1, num: 1, id: '1-1-1' },
+    ];
+    const tile: Tile = { suit: 2, num: 1, id: '2-1-0' };
+    expect(canPeng(hand, tile)).toBe(false);
+  });
+});
+
+describe('杠牌判断 (canGang)', () => {
+  it('三张相同牌可以杠', () => {
+    const hand: Tile[] = [
+      { suit: 1, num: 1, id: '1-1-0' },
+      { suit: 1, num: 1, id: '1-1-1' },
+      { suit: 1, num: 1, id: '1-1-2' },
+    ];
+    const tile: Tile = { suit: 1, num: 1, id: '1-1-3' };
+    expect(canGang(hand, tile)).toBe(true);
+  });
+
+  it('两张相同牌不能杠', () => {
+    const hand: Tile[] = [
+      { suit: 1, num: 1, id: '1-1-0' },
+      { suit: 1, num: 1, id: '1-1-1' },
+    ];
+    const tile: Tile = { suit: 1, num: 1, id: '1-1-2' };
+    expect(canGang(hand, tile)).toBe(false);
+  });
+});
+
+describe('胡牌检测 (checkHu)', () => {
+  it('13张牌不能胡', () => {
+    const hand = Array(13).fill(null).map((_, i) => ({
+      suit: 1,
+      num: (i % 9) + 1,
+      id: `1-${(i % 9) + 1}-${i}`
+    }));
+    expect(checkHu(hand)).toBe(false);
+  });
+
+  it('基本胡牌牌型', () => {
+    const hand: Tile[] = [
+      { suit: 1, num: 1, id: '1-1-0' },
+      { suit: 1, num: 1, id: '1-1-1' },
+      { suit: 1, num: 1, id: '1-1-2' },
+      { suit: 1, num: 2, id: '1-2-0' },
+      { suit: 1, num: 2, id: '1-2-1' },
+      { suit: 1, num: 2, id: '1-2-2' },
+      { suit: 1, num: 3, id: '1-3-0' },
+      { suit: 1, num: 3, id: '1-3-1' },
+      { suit: 1, num: 3, id: '1-3-2' },
+      { suit: 1, num: 4, id: '1-4-0' },
+      { suit: 1, num: 4, id: '1-4-1' },
+      { suit: 1, num: 4, id: '1-4-2' },
+      { suit: 2, num: 5, id: '2-5-0' },
+      { suit: 2, num: 5, id: '2-5-1' },
+    ];
+    expect(checkHu(hand)).toBe(true);
+  });
+
+  it('七对子胡牌', () => {
+    const hand: Tile[] = [];
+    for (let i = 0; i < 7; i++) {
+      hand.push({ suit: 1, num: i + 1, id: `1-${i + 1}-0` });
+      hand.push({ suit: 1, num: i + 1, id: `1-${i + 1}-1` });
+    }
+    expect(checkHu(hand)).toBe(true);
+  });
+
+  it('错误牌型不能胡', () => {
+    const hand: Tile[] = [
+      { suit: 1, num: 1, id: '1-1-0' },
+      { suit: 1, num: 2, id: '1-2-0' },
+      { suit: 1, num: 4, id: '1-4-0' },
+      { suit: 1, num: 5, id: '1-5-0' },
+      { suit: 1, num: 6, id: '1-6-0' },
+      { suit: 1, num: 7, id: '1-7-0' },
+      { suit: 1, num: 8, id: '1-8-0' },
+      { suit: 1, num: 9, id: '1-9-0' },
+      { suit: 2, num: 1, id: '2-1-0' },
+      { suit: 2, num: 2, id: '2-2-0' },
+      { suit: 2, num: 3, id: '2-3-0' },
+      { suit: 2, num: 4, id: '2-4-0' },
+      { suit: 2, num: 5, id: '2-5-0' },
+      { suit: 2, num: 6, id: '2-6-0' },
+    ];
+    expect(checkHu(hand)).toBe(false);
+  });
+});
+
+describe('对子查找 (findPairs)', () => {
+  it('找到所有对子', () => {
+    const hand: Tile[] = [
+      { suit: 1, num: 1, id: '1-1-0' },
+      { suit: 1, num: 1, id: '1-1-1' },
+      { suit: 1, num: 2, id: '1-2-0' },
+      { suit: 1, num: 2, id: '1-2-1' },
+      { suit: 1, num: 3, id: '1-3-0' },
+    ];
+    const pairs = findPairs(hand);
+    expect(pairs).toHaveLength(2);
+  });
+
+  it('没有对子返回空数组', () => {
+    const hand: Tile[] = [
+      { suit: 1, num: 1, id: '1-1-0' },
+      { suit: 1, num: 2, id: '1-2-0' },
+      { suit: 1, num: 3, id: '1-3-0' },
+    ];
+    const pairs = findPairs(hand);
+    expect(pairs).toHaveLength(0);
+  });
+});
