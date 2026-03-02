@@ -186,6 +186,24 @@ function App() {
     }
   }, [playerHand]);
 
+  // 玩家吃牌
+  const handleChi = useCallback(() => {
+    if (!lastDiscarded || !canChi(playerHand, lastDiscarded)) return;
+    
+    const options = findChiOptions(playerHand, lastDiscarded);
+    if (options.length > 0) {
+      const option = options[0];
+      const newHand = playerHand.filter(t => 
+        !option.some(o => o.id === t.id)
+      );
+      setPlayerHand([...newHand, lastDiscarded]);
+      setDiscardedTiles(prev => prev.filter(t => t.id !== lastDiscarded.id));
+      setLastDiscarded(null);
+      setHasDrawn(true);
+      setMessage('吃了！请打出一张牌');
+    }
+  }, [lastDiscarded, playerHand]);
+
   // 玩家过牌
   const handlePass = useCallback(() => {
     setSelectedTile(null);
@@ -365,7 +383,7 @@ function App() {
             onHu={handleHu}
             onPeng={handlePeng}
             onGang={handleGang}
-            onChi={() => {}}
+            onChi={handleChi}
             onPass={handlePass}
             onDraw={drawTile}
             canHu={canHu}
