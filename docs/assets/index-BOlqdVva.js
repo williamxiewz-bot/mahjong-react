@@ -12848,7 +12848,6 @@ function App() {
   const [playerLastDrawn, setPlayerLastDrawn] = reactExports.useState(null);
   const [playerPengs, setPlayerPengs] = reactExports.useState([]);
   const [playerGangs, setPlayerGangs] = reactExports.useState([]);
-  const [playerChis, setPlayerChis] = reactExports.useState([]);
   const [discardedTiles, setDiscardedTiles] = reactExports.useState([]);
   const [currentPlayer, setCurrentPlayer] = reactExports.useState(0);
   const [hasDrawn, setHasDrawn] = reactExports.useState(false);
@@ -12858,15 +12857,17 @@ function App() {
   const [message, setMessage] = reactExports.useState("");
   const [aiHands, setAiHands] = reactExports.useState([[], [], []]);
   const [aiLastDrawn, setAiLastDrawn] = reactExports.useState([null, null, null]);
-  const [aiPengs, setAiPengs] = reactExports.useState([[], [], []]);
-  const [aiGangs, setAiGangs] = reactExports.useState([[], [], []]);
   const isPlayerTurn = currentPlayer === 0;
-  const aiTimerRef = reactExports.useRef(null);
-  const startGame = reactExports.useCallback(() => {
-    setIsLoading(true);
-    if (aiTimerRef.current) {
-      clearTimeout(aiTimerRef.current);
+  const timerRef = reactExports.useRef(null);
+  const clearTimer = () => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
     }
+  };
+  const startGame = reactExports.useCallback(() => {
+    clearTimer();
+    setIsLoading(true);
     setTimeout(() => {
       const allTiles = shuffleTiles(createTiles());
       setTiles(allTiles);
@@ -12876,12 +12877,12 @@ function App() {
       setAiHands([
         sortHand(allTiles.slice(0, 13)),
         // 下家AI
-        sortHand(allTiles.slice(40, 53)),
+        sortHand(allTiles.slice(28, 41)),
         // 对家AI
-        sortHand(allTiles.slice(54, 67))
+        sortHand(allTiles.slice(42, 55))
         // 上家AI
       ]);
-      setAiLastDrawn([allTiles[13], allTiles[39], allTiles[53]]);
+      setAiLastDrawn([allTiles[13], allTiles[41], allTiles[55]]);
       setDiscardedTiles([]);
       setSelectedTile(null);
       setLastDiscarded(null);
@@ -12889,11 +12890,8 @@ function App() {
       setHasDrawn(true);
       setPlayerPengs([]);
       setPlayerGangs([]);
-      setPlayerChis([]);
-      setAiPengs([[], [], []]);
-      setAiGangs([[], [], []]);
       setGameStarted(true);
-      setMessage("游戏开始！请选择要打出的牌");
+      setMessage("请选择要打出的牌");
       setIsLoading(false);
     }, 300);
   }, []);
@@ -12908,10 +12906,10 @@ function App() {
     const drawnTile = newTiles.shift();
     if (!drawnTile) return;
     setTiles(newTiles);
-    setPlayerHand((prev) => sortHand([...prev, drawnTile]));
+    const newHand = sortHand([...playerHand, drawnTile]);
+    setPlayerHand(newHand);
     setPlayerLastDrawn(drawnTile);
     setHasDrawn(true);
-    const newHand = [...playerHand, drawnTile];
     if (checkHu(newHand)) {
       setMessage("🎉 可以胡牌！");
     } else {
@@ -12929,7 +12927,7 @@ function App() {
     setHasDrawn(false);
     setCurrentPlayer(1);
     setMessage("下家摸牌中...");
-    aiTimerRef.current = setTimeout(() => {
+    timerRef.current = setTimeout(() => {
       aiPlay(1);
     }, 800);
   }, [isPlayerTurn, hasDrawn, playerHand]);
@@ -12949,14 +12947,13 @@ function App() {
   const handleGang = reactExports.useCallback(() => {
     if (!playerLastDrawn || !canGang(playerHand, playerLastDrawn)) return;
     const gangTiles = playerHand.filter((t) => t.suit === playerLastDrawn.suit && t.num === playerLastDrawn.num);
-    setPlayerHand((prev) => prev.filter((t) => t.id !== gangTiles[0].id && t.id !== gangTiles[1].id && t.id !== gangTiles[2].id));
+    const newHand = playerHand.filter((t) => t.id !== gangTiles[0].id && t.id !== gangTiles[1].id && t.id !== gangTiles[2].id);
+    setPlayerHand(newHand);
     setPlayerGangs((prev) => [...prev, [...gangTiles, playerLastDrawn]]);
     setPlayerLastDrawn(null);
     setHasDrawn(false);
     setMessage("杠了！继续摸牌");
-    aiTimerRef.current = setTimeout(() => {
-      drawTile();
-    }, 500);
+    timerRef.current = setTimeout(() => drawTile(), 500);
   }, [playerLastDrawn, playerHand, drawTile]);
   const handleChi = reactExports.useCallback(() => {
     if (!lastDiscarded || !canChi(playerHand, lastDiscarded)) return;
@@ -12969,21 +12966,21 @@ function App() {
     if (checkHu(playerHand)) {
       setMessage("🎉 胡牌了！恭喜！");
       setGameStarted(false);
+      clearTimer();
     }
   }, [playerHand]);
   const handlePass = reactExports.useCallback(() => {
     setSelectedTile(null);
     setCurrentPlayer(1);
     setMessage("下家摸牌中...");
-    aiTimerRef.current = setTimeout(() => {
-      aiPlay(1);
-    }, 800);
+    timerRef.current = setTimeout(() => aiPlay(1), 800);
   }, []);
   const aiPlay = reactExports.useCallback((aiIndex) => {
     if (!gameStarted) return;
     if (tiles.length === 0) {
       setMessage("流局！");
       setGameStarted(false);
+      clearTimer();
       return;
     }
     const newTiles = [...tiles];
@@ -13000,72 +12997,41 @@ function App() {
       updated[aiIndex] = drawnTile;
       return updated;
     });
-    const currentAiHand = aiHands[aiIndex] ? sortHand([...aiHands[aiIndex], drawnTile]) : [drawnTile];
-    if (checkHu(currentAiHand)) {
+    timerRef.current = setTimeout(() => {
+      aiDiscard(aiIndex, drawnTile);
+    }, 500);
+  }, [gameStarted, tiles]);
+  const aiDiscard = reactExports.useCallback((aiIndex, drawnTile) => {
+    const currentHand = aiHands[aiIndex] || [];
+    if (checkHu([...currentHand, drawnTile])) {
       setMessage(`AI${aiIndex + 1} 胡牌了！`);
       setGameStarted(false);
+      clearTimer();
       return;
     }
-    if (canGang(currentAiHand, drawnTile)) {
-      setAiGangs((prev) => {
-        const updated = [...prev];
-        const gangTiles = currentAiHand.filter((t) => t.suit === drawnTile.suit && t.num === drawnTile.num);
-        updated[aiIndex] = [...updated[aiIndex], [...gangTiles, drawnTile]];
-        return updated;
-      });
-      setAiHands((prev) => {
-        const updated = [...prev];
-        const gangTiles = updated[aiIndex].filter((t) => t.suit === drawnTile.suit && t.num === drawnTile.num);
-        updated[aiIndex] = updated[aiIndex].filter((t) => t.id !== gangTiles[0].id && t.id !== gangTiles[1].id && t.id !== gangTiles[2].id);
-        return updated;
-      });
-      setMessage(`AI${aiIndex + 1} 杠牌了！`);
-      aiTimerRef.current = setTimeout(() => {
-        const nextPlayer = (aiIndex + 1) % 4;
-        if (nextPlayer === 0) {
-          setCurrentPlayer(0);
-          setMessage("轮到你了！请摸牌");
-          setHasDrawn(false);
-        } else {
-          setCurrentPlayer(nextPlayer);
-          aiTimerRef.current = setTimeout(() => {
-            aiPlay(nextPlayer);
-          }, 800);
-        }
-      }, 1e3);
-      return;
-    }
-    setTimeout(() => {
-      setAiHands((prev) => {
-        const updated = [...prev];
-        const discardIndex = Math.floor(Math.random() * updated[aiIndex].length);
-        const aiDiscard = updated[aiIndex][discardIndex];
-        setDiscardedTiles((prevTiles) => [...prevTiles, aiDiscard]);
-        setLastDiscarded(aiDiscard);
-        updated[aiIndex] = updated[aiIndex].filter((_, i) => i !== discardIndex);
-        checkAiActions(aiIndex, aiDiscard);
-        return updated;
-      });
-      setAiLastDrawn((prev) => {
-        const updated = [...prev];
-        updated[aiIndex] = null;
-        return updated;
-      });
-    }, 500);
-  }, [tiles, gameStarted, aiHands]);
-  const checkAiActions = reactExports.useCallback((fromPlayer, discardedTile) => {
-    const nextPlayer = (fromPlayer + 1) % 4;
+    const discardIndex = Math.floor(Math.random() * currentHand.length);
+    const aiDiscard2 = currentHand[discardIndex];
+    setAiHands((prev) => {
+      const updated = [...prev];
+      updated[aiIndex] = currentHand.filter((_, i) => i !== discardIndex);
+      return updated;
+    });
+    setAiLastDrawn((prev) => {
+      const updated = [...prev];
+      updated[aiIndex] = null;
+      return updated;
+    });
+    setDiscardedTiles((prev) => [...prev, aiDiscard2]);
+    setLastDiscarded(aiDiscard2);
+    const nextPlayer = (aiIndex + 1) % 4;
     if (nextPlayer === 0) {
       setCurrentPlayer(0);
-      setHasDrawn(true);
-      setMessage("轮到你行动了");
+      setMessage("轮到你摸牌了");
     } else {
       setCurrentPlayer(nextPlayer);
-      aiTimerRef.current = setTimeout(() => {
-        aiPlay(nextPlayer);
-      }, 800);
+      timerRef.current = setTimeout(() => aiPlay(nextPlayer), 800);
     }
-  }, []);
+  }, [aiHands]);
   const handleTileClick = reactExports.useCallback((tile) => {
     if (isPlayerTurn && hasDrawn) {
       setSelectedTile(tile);
@@ -13076,45 +13042,13 @@ function App() {
       discardTile(selectedTile);
     }
   }, [selectedTile, hasDrawn, isPlayerTurn, discardTile]);
+  reactExports.useEffect(() => {
+    return () => clearTimer();
+  }, []);
   const canHu = reactExports.useMemo(() => checkHu(playerHand), [playerHand]);
   const canPengResult = reactExports.useMemo(() => lastDiscarded && canPeng(playerHand, lastDiscarded), [lastDiscarded, playerHand]);
   const canGangResult = reactExports.useMemo(() => playerLastDrawn && canGang(playerHand, playerLastDrawn), [playerLastDrawn, playerHand]);
   const canChiResult = reactExports.useMemo(() => lastDiscarded && canChi(playerHand, lastDiscarded), [lastDiscarded, playerHand]);
-  reactExports.useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (!gameStarted || !isPlayerTurn) return;
-      switch (e.key) {
-        case "h":
-        case "H":
-          if (checkHu(playerHand)) handleHu();
-          break;
-        case "p":
-        case "P":
-          if (canPengResult) handlePeng();
-          break;
-        case "g":
-        case "G":
-          if (canGangResult) handleGang();
-          break;
-        case "c":
-        case "C":
-          if (canChiResult) handleChi();
-          break;
-        case " ":
-        case "Enter":
-          if (!hasDrawn) {
-            e.preventDefault();
-            drawTile();
-          }
-          break;
-        case "Escape":
-          handlePass();
-          break;
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [gameStarted, isPlayerTurn, canHu, canPengResult, canGangResult, canChiResult, hasDrawn, handleHu, handlePeng, handleGang, handleChi, handlePass, drawTile, playerHand]);
   const opponents = reactExports.useMemo(() => ({
     left: { name: "上家 AI", handCount: 13, position: "left" },
     opposite: { name: "对家 AI", handCount: 13, position: "opposite" },
@@ -13123,14 +13057,14 @@ function App() {
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mahjong-game", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "game-header", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx("h1", { children: "🀄 广东麻将 🀄" }),
-      message && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "message", role: "status", "aria-live": "polite", children: message })
+      message && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "message", role: "status", children: message })
     ] }),
-    isLoading && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "loading-overlay", "aria-live": "polite", children: [
+    isLoading && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "loading-overlay", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "loading-spinner" }),
       /* @__PURE__ */ jsxRuntimeExports.jsx("p", { children: "正在加载游戏..." })
     ] }),
     !gameStarted && !isLoading && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "start-screen", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "start-btn", onClick: startGame, "aria-label": "开始游戏", children: "开始游戏" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "start-btn", onClick: startGame, children: "开始游戏" }),
       /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "game-info", children: "你将对战 3 个 AI 对手" })
     ] }),
     gameStarted && !isLoading && /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
@@ -13151,7 +13085,7 @@ function App() {
           lastDrawn: playerLastDrawn,
           pengs: playerPengs,
           gangs: playerGangs,
-          chis: playerChis
+          chis: []
         }
       ) }),
       /* @__PURE__ */ jsxRuntimeExports.jsx(
