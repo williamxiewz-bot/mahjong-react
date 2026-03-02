@@ -12989,6 +12989,10 @@ function App() {
       aiPlay();
     }, 1e3);
   }, [aiPlay]);
+  const canHu = reactExports.useMemo(() => checkHu(playerHand), [playerHand]);
+  const canPengResult = reactExports.useMemo(() => lastDiscarded && canPeng(playerHand, lastDiscarded), [lastDiscarded, playerHand]);
+  const canGangResult = reactExports.useMemo(() => lastDrawn && canGang(playerHand, lastDrawn), [lastDrawn, playerHand]);
+  const canChiResult = reactExports.useMemo(() => lastDiscarded && canChi(playerHand, lastDiscarded), [lastDiscarded, playerHand]);
   reactExports.useEffect(() => {
     if (selectedTile && hasDrawn && currentPlayer === 0) {
       handleDiscard();
@@ -13042,10 +13046,6 @@ function App() {
     left: { name: "对家", handCount: 13 },
     right: { name: "下家", handCount: 13 }
   }), []);
-  const canHu = reactExports.useMemo(() => checkHu(playerHand), [playerHand]);
-  const canPengResult = reactExports.useMemo(() => lastDiscarded && canPeng(playerHand, lastDiscarded), [lastDiscarded, playerHand]);
-  const canGangResult = reactExports.useMemo(() => lastDrawn && canGang(playerHand, lastDrawn), [lastDrawn, playerHand]);
-  const canChiResult = reactExports.useMemo(() => lastDiscarded && canChi(playerHand, lastDiscarded), [lastDiscarded, playerHand]);
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mahjong-game", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "game-header", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx("h1", { children: "🀄 麻将游戏 🀄" }),

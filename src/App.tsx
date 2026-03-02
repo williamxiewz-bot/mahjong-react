@@ -207,6 +207,12 @@ function App() {
     }, 1000);
   }, [aiPlay]);
 
+  // 计算胡、碰、杠、吃能力 - 必须在 useEffect 之前定义
+  const canHu = useMemo(() => checkHu(playerHand), [playerHand]);
+  const canPengResult = useMemo(() => lastDiscarded && canPeng(playerHand, lastDiscarded), [lastDiscarded, playerHand]);
+  const canGangResult = useMemo(() => lastDrawn && canGang(playerHand, lastDrawn), [lastDrawn, playerHand]);
+  const canChiResult = useMemo(() => lastDiscarded && canChi(playerHand, lastDiscarded), [lastDiscarded, playerHand]);
+
   useEffect(() => {
     if (selectedTile && hasDrawn && currentPlayer === 0) {
       handleDiscard();
@@ -268,11 +274,6 @@ function App() {
     left: { name: '对家', handCount: 13 },
     right: { name: '下家', handCount: 13 }
   }), []);
-
-  const canHu = useMemo(() => checkHu(playerHand), [playerHand]);
-  const canPengResult = useMemo(() => lastDiscarded && canPeng(playerHand, lastDiscarded), [lastDiscarded, playerHand]);
-  const canGangResult = useMemo(() => lastDrawn && canGang(playerHand, lastDrawn), [lastDrawn, playerHand]);
-  const canChiResult = useMemo(() => lastDiscarded && canChi(playerHand, lastDiscarded), [lastDiscarded, playerHand]);
 
   return (
     <div className="mahjong-game">
