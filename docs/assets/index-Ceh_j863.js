@@ -12804,8 +12804,10 @@ const ActionButtons = reactExports.memo(function ActionButtons2({
   canGang: canGang2,
   canChi: canChi2,
   isMyTurn,
-  hasDrawn
+  hasDrawn,
+  canPass = false
 }) {
+  const showPass = canPass || canHu || canPeng2 || canGang2 || canChi2;
   const buttons = reactExports.useMemo(() => {
     const btns = [];
     if (isMyTurn && !hasDrawn) {
@@ -12848,7 +12850,7 @@ const ActionButtons = reactExports.memo(function ActionButtons2({
         ] }, "chi")
       );
     }
-    if (isMyTurn && hasDrawn) {
+    if (showPass) {
       btns.push(
         /* @__PURE__ */ jsxRuntimeExports.jsxs("button", { className: "action-btn pass-btn", onClick: onPass, children: [
           "过 ",
@@ -12857,7 +12859,7 @@ const ActionButtons = reactExports.memo(function ActionButtons2({
       );
     }
     return btns;
-  }, [isMyTurn, hasDrawn, canHu, canPeng2, canGang2, canChi2, onHu, onPeng, onGang, onChi, onPass, onDraw]);
+  }, [isMyTurn, hasDrawn, canHu, canPeng2, canGang2, canChi2, showPass, onHu, onPeng, onGang, onChi, onPass, onDraw]);
   return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "action-buttons", role: "group", "aria-label": "游戏操作", children: buttons });
 });
 function App() {
@@ -13096,9 +13098,19 @@ function App() {
     }
   }, [aiHands]);
   const canHu = reactExports.useMemo(() => checkHu(playerHand), [playerHand]);
-  const canPengResult = reactExports.useMemo(() => lastDiscarded ? canPeng(playerHand, lastDiscarded) : false, [lastDiscarded, playerHand]);
-  const canGangResult = reactExports.useMemo(() => playerLastDrawn ? canGang(playerHand, playerLastDrawn) : false, [playerLastDrawn, playerHand]);
-  const canChiResult = reactExports.useMemo(() => lastDiscarded ? canChi(playerHand, lastDiscarded) : false, [lastDiscarded, playerHand]);
+  const canPengResult = reactExports.useMemo(() => {
+    if (!lastDiscarded) return false;
+    return canPeng(playerHand, lastDiscarded);
+  }, [lastDiscarded, playerHand]);
+  const canGangResult = reactExports.useMemo(() => {
+    if (!playerLastDrawn) return false;
+    return canGang(playerHand, playerLastDrawn);
+  }, [playerLastDrawn, playerHand]);
+  const canChiResult = reactExports.useMemo(() => {
+    if (!lastDiscarded) return false;
+    return canChi(playerHand, lastDiscarded);
+  }, [lastDiscarded, playerHand]);
+  const canAction = reactExports.useMemo(() => canHu || canPengResult || canGangResult || canChiResult, [canHu, canPengResult, canGangResult, canChiResult]);
   reactExports.useEffect(() => {
     if (!gameStarted || !isPlayerTurn) return;
     if (chiOptions.length > 0) return;
@@ -13222,7 +13234,8 @@ function App() {
           canGang: canGangResult,
           canChi: canChiResult,
           isMyTurn: isPlayerTurn,
-          hasDrawn
+          hasDrawn,
+          canPass: canAction
         }
       )
     ] })

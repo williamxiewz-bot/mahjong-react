@@ -14,6 +14,7 @@ interface ActionButtonsProps {
   canChi: boolean;
   isMyTurn: boolean;
   hasDrawn: boolean;
+  canPass?: boolean; // 是否有可以放弃的行动
 }
 
 const ActionButtons = memo(function ActionButtons({ 
@@ -28,8 +29,12 @@ const ActionButtons = memo(function ActionButtons({
   canGang, 
   canChi,
   isMyTurn,
-  hasDrawn
+  hasDrawn,
+  canPass = false
 }: ActionButtonsProps) {
+  // 有可以胡/碰/吃/杠的选择时，才能"过"
+  const showPass = canPass || canHu || canPeng || canGang || canChi;
+  
   const buttons = useMemo(() => {
     const btns: JSX.Element[] = [];
     
@@ -73,7 +78,8 @@ const ActionButtons = memo(function ActionButtons({
       );
     }
     
-    if (isMyTurn && hasDrawn) {
+    // 只有在有胡/碰/吃/杠的选择时，才显示"过"按钮
+    if (showPass) {
       btns.push(
         <button key="pass" className="action-btn pass-btn" onClick={onPass}>
           过 <span className="key-hint">Esc</span>
@@ -82,7 +88,7 @@ const ActionButtons = memo(function ActionButtons({
     }
     
     return btns;
-  }, [isMyTurn, hasDrawn, canHu, canPeng, canGang, canChi, onHu, onPeng, onGang, onChi, onPass, onDraw]);
+  }, [isMyTurn, hasDrawn, canHu, canPeng, canGang, canChi, showPass, onHu, onPeng, onGang, onChi, onPass, onDraw]);
 
   return (
     <div className="action-buttons" role="group" aria-label="游戏操作">

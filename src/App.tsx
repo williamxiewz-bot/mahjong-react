@@ -339,9 +339,21 @@ function App() {
 
   // 计算能力 - 必须在useEffect之前定义
   const canHu = useMemo(() => checkHu(playerHand), [playerHand]);
-  const canPengResult = useMemo(() => lastDiscarded ? canPeng(playerHand, lastDiscarded) : false, [lastDiscarded, playerHand]);
-  const canGangResult = useMemo(() => playerLastDrawn ? canGang(playerHand, playerLastDrawn) : false, [playerLastDrawn, playerHand]);
-  const canChiResult = useMemo(() => lastDiscarded ? canChi(playerHand, lastDiscarded) : false, [lastDiscarded, playerHand]);
+  const canPengResult = useMemo(() => {
+    if (!lastDiscarded) return false;
+    return canPeng(playerHand, lastDiscarded);
+  }, [lastDiscarded, playerHand]);
+  const canGangResult = useMemo(() => {
+    if (!playerLastDrawn) return false;
+    return canGang(playerHand, playerLastDrawn);
+  }, [playerLastDrawn, playerHand]);
+  const canChiResult = useMemo(() => {
+    if (!lastDiscarded) return false;
+    return canChi(playerHand, lastDiscarded);
+  }, [lastDiscarded, playerHand]);
+  
+  // 是否可以行动（有碰/吃/杠/胡的选择）
+  const canAction = useMemo(() => canHu || canPengResult || canGangResult || canChiResult, [canHu, canPengResult, canGangResult, canChiResult]);
 
   // 自动摸牌/行动
   useEffect(() => {
@@ -495,6 +507,7 @@ function App() {
             canChi={canChiResult}
             isMyTurn={isPlayerTurn}
             hasDrawn={hasDrawn}
+            canPass={canAction}
           />
         </>
       )}
