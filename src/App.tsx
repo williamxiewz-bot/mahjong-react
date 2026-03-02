@@ -7,7 +7,6 @@ import {
   canGang, 
   canChi, 
   checkHu,
-  findChiOptions,
   type Tile
 } from './mahjongGame';
 import PlayerHand from './components/PlayerHand';
@@ -48,12 +47,11 @@ function App() {
   
   // 3个AI的手牌 [下家, 对家, 上家]
   const [aiHands, setAiHands] = useState<Tile[][]>([[], [], []]);
-  const [aiLastDrawn, setAiLastDrawn] = useState<(Tile | null)[]>([null, null, null]);
   
   const isPlayerTurn = currentPlayer === 0;
   
-  // 定时器引用
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // 定时器
+  const timerRef = useRef<number | null>(null);
 
   // 清理定时器
   const clearTimer = () => {
@@ -83,8 +81,6 @@ function App() {
         sortHand(allTiles.slice(28, 41)),   // 对家AI
         sortHand(allTiles.slice(42, 55)),   // 上家AI
       ]);
-      
-      setAiLastDrawn([allTiles[13], allTiles[41], allTiles[55]]);
       
       setDiscardedTiles([]);
       setSelectedTile(null);
@@ -142,7 +138,7 @@ function App() {
     setCurrentPlayer(1);
     setMessage('下家摸牌中...');
     
-    timerRef.current = setTimeout(() => {
+    timerRef.current = window.setTimeout(() => {
       aiPlay(1);
     }, 800);
   }, [isPlayerTurn, hasDrawn, playerHand]);
@@ -178,17 +174,8 @@ function App() {
     setHasDrawn(false);
     setMessage('杠了！继续摸牌');
     
-    timerRef.current = setTimeout(() => drawTile(), 500);
+    timerRef.current = window.setTimeout(() => drawTile(), 500);
   }, [playerLastDrawn, playerHand, drawTile]);
-
-  // 玩家吃牌
-  const handleChi = useCallback(() => {
-    if (!lastDiscarded || !canChi(playerHand, lastDiscarded)) return;
-    const options = findChiOptions(playerHand, lastDiscarded);
-    if (options.length > 0) {
-      setMessage('吃牌选项: ' + options.length + ' 种');
-    }
-  }, [lastDiscarded, playerHand]);
 
   // 玩家胡牌
   const handleHu = useCallback(() => {
@@ -204,10 +191,10 @@ function App() {
     setSelectedTile(null);
     setCurrentPlayer(1);
     setMessage('下家摸牌中...');
-    timerRef.current = setTimeout(() => aiPlay(1), 800);
+    timerRef.current = window.setTimeout(() => aiPlay(1), 800);
   }, []);
 
-  // AI打牌 (aiIndex: 1=下家, 2=对家, 3=上家)
+  // AI打牌
   const aiPlay = useCallback((aiIndex: number) => {
     if (!gameStarted) return;
     
@@ -225,36 +212,29 @@ function App() {
     if (!drawnTile) return;
     setTiles(newTiles);
     
-    // aiIndex 1,2,3 -> aiHands[0,1,2]
+    // aiIndex: 1,2,3 -> handIdx: 0,1,2
     const handIdx = aiIndex - 1;
     
     // 更新AI手牌
     setAiHands(prev => {
       const updated = [...prev];
       if (!updated[handIdx]) updated[handIdx] = [];
-      updated[handIdx] = sortHand([...updated[handIdx], drawnTile!]);
-      return updated;
-    });
-    
-    setAiLastDrawn(prev => {
-      const updated = [...prev];
-      if (handIdx < updated.length) updated[handIdx] = drawnTile;
+      updated[handIdx] = sortHand([...updated[handIdx], drawnTile]);
       return updated;
     });
     
     // 延迟后打牌
-    timerRef.current = setTimeout(() => {
-      aiDiscard(aiIndex, drawnTile!);
+    timerRef.current = window.setTimeout(() => {
+      aiDiscard(aiIndex, drawnTile);
     }, 500);
   }, [gameStarted, tiles]);
 
   // AI打牌
   const aiDiscard = useCallback((aiIndex: number, drawnTile: Tile) => {
-    // aiIndex 1,2,3 -> aiHands[0,1,2]
     const handIdx = aiIndex - 1;
     
     // 获取当前手牌
-    const currentHand = aiHands[handIdx] ? [...aiHands[handIdx]] : [];
+    const currentHand = aiHands[handIdx] || [];
     
     if (currentHand.length === 0) {
       // 下一个玩家
@@ -264,13 +244,13 @@ function App() {
         setMessage('轮到你摸牌了');
       } else {
         setCurrentPlayer(nextPlayer);
-        timerRef.current = setTimeout(() => aiPlay(nextPlayer), 800);
+        timerRef.current = window.setTimeout(() => aiPlay(nextPlayer), 800);
       }
       return;
     }
     
     // 检查胡牌
-    if (currentHand.length > 0 && checkHu([...currentHand, drawnTile])) {
+    if (checkHu([...currentHand, drawnTile])) {
       setMessage(`AI${aiIndex} 胡牌了！`);
       setGameStarted(false);
       clearTimer();
@@ -284,15 +264,9 @@ function App() {
     // 更新手牌
     setAiHands(prev => {
       const updated = [...prev];
-      if (updated[handIdx] && updated[handIdx].length > 0) {
+      if (updated[handIdx]) {
         updated[handIdx] = currentHand.filter((_, i) => i !== discardIndex);
       }
-      return updated;
-    });
-    
-    setAiLastDrawn(prev => {
-      const updated = [...prev];
-      if (handIdx < updated.length) updated[handIdx] = null;
       return updated;
     });
     
@@ -307,7 +281,7 @@ function App() {
       setMessage('轮到你摸牌了');
     } else {
       setCurrentPlayer(nextPlayer);
-      timerRef.current = setTimeout(() => aiPlay(nextPlayer), 800);
+      timerRef.current = window.setTimeout(() => aiPlay(nextPlayer), 800);
     }
   }, [aiHands]);
 
@@ -391,7 +365,7 @@ function App() {
             onHu={handleHu}
             onPeng={handlePeng}
             onGang={handleGang}
-            onChi={handleChi}
+            onChi={() => {}}
             onPass={handlePass}
             onDraw={drawTile}
             canHu={canHu}

@@ -12565,40 +12565,6 @@ function canChi(hand, tile) {
   }
   return false;
 }
-function findChiOptions(hand, tile) {
-  if (tile.suit > 3) return [];
-  const options = [];
-  const num = tile.num;
-  const suit = tile.suit;
-  if (num >= 2 && num <= 8) {
-    const has1 = hand.some((t) => t.suit === suit && t.num === num - 1);
-    const has2 = hand.some((t) => t.suit === suit && t.num === num + 1);
-    if (has1 && has2) {
-      const t1 = hand.filter((t) => t.suit === suit && t.num === num - 1)[0];
-      const t2 = hand.filter((t) => t.suit === suit && t.num === num + 1)[0];
-      options.push([t1, t2, tile]);
-    }
-  }
-  if (num >= 3) {
-    const has1 = hand.some((t) => t.suit === suit && t.num === num - 2);
-    const has2 = hand.some((t) => t.suit === suit && t.num === num - 1);
-    if (has1 && has2) {
-      const t1 = hand.filter((t) => t.suit === suit && t.num === num - 2)[0];
-      const t2 = hand.filter((t) => t.suit === suit && t.num === num - 1)[0];
-      options.push([t1, t2, tile]);
-    }
-  }
-  if (num <= 7) {
-    const has1 = hand.some((t) => t.suit === suit && t.num === num + 1);
-    const has2 = hand.some((t) => t.suit === suit && t.num === num + 2);
-    if (has1 && has2) {
-      const t1 = hand.filter((t) => t.suit === suit && t.num === num + 1)[0];
-      const t2 = hand.filter((t) => t.suit === suit && t.num === num + 2)[0];
-      options.push([t1, t2, tile]);
-    }
-  }
-  return options;
-}
 const huCache = /* @__PURE__ */ new Map();
 function getCacheKey(hand) {
   return hand.map((t) => `${t.suit}-${t.num}`).sort().join(",");
@@ -12856,7 +12822,6 @@ function App() {
   const [gameStarted, setGameStarted] = reactExports.useState(false);
   const [message, setMessage] = reactExports.useState("");
   const [aiHands, setAiHands] = reactExports.useState([[], [], []]);
-  const [aiLastDrawn, setAiLastDrawn] = reactExports.useState([null, null, null]);
   const isPlayerTurn = currentPlayer === 0;
   const timerRef = reactExports.useRef(null);
   const clearTimer = () => {
@@ -12882,7 +12847,6 @@ function App() {
         sortHand(allTiles.slice(42, 55))
         // 上家AI
       ]);
-      setAiLastDrawn([allTiles[13], allTiles[41], allTiles[55]]);
       setDiscardedTiles([]);
       setSelectedTile(null);
       setLastDiscarded(null);
@@ -12927,7 +12891,7 @@ function App() {
     setHasDrawn(false);
     setCurrentPlayer(1);
     setMessage("下家摸牌中...");
-    timerRef.current = setTimeout(() => {
+    timerRef.current = window.setTimeout(() => {
       aiPlay(1);
     }, 800);
   }, [isPlayerTurn, hasDrawn, playerHand]);
@@ -12953,15 +12917,8 @@ function App() {
     setPlayerLastDrawn(null);
     setHasDrawn(false);
     setMessage("杠了！继续摸牌");
-    timerRef.current = setTimeout(() => drawTile(), 500);
+    timerRef.current = window.setTimeout(() => drawTile(), 500);
   }, [playerLastDrawn, playerHand, drawTile]);
-  const handleChi = reactExports.useCallback(() => {
-    if (!lastDiscarded || !canChi(playerHand, lastDiscarded)) return;
-    const options = findChiOptions(playerHand, lastDiscarded);
-    if (options.length > 0) {
-      setMessage("吃牌选项: " + options.length + " 种");
-    }
-  }, [lastDiscarded, playerHand]);
   const handleHu = reactExports.useCallback(() => {
     if (checkHu(playerHand)) {
       setMessage("🎉 胡牌了！恭喜！");
@@ -12973,7 +12930,7 @@ function App() {
     setSelectedTile(null);
     setCurrentPlayer(1);
     setMessage("下家摸牌中...");
-    timerRef.current = setTimeout(() => aiPlay(1), 800);
+    timerRef.current = window.setTimeout(() => aiPlay(1), 800);
   }, []);
   const aiPlay = reactExports.useCallback((aiIndex) => {
     if (!gameStarted) return;
@@ -12994,18 +12951,13 @@ function App() {
       updated[handIdx] = sortHand([...updated[handIdx], drawnTile]);
       return updated;
     });
-    setAiLastDrawn((prev) => {
-      const updated = [...prev];
-      if (handIdx < updated.length) updated[handIdx] = drawnTile;
-      return updated;
-    });
-    timerRef.current = setTimeout(() => {
+    timerRef.current = window.setTimeout(() => {
       aiDiscard(aiIndex, drawnTile);
     }, 500);
   }, [gameStarted, tiles]);
   const aiDiscard = reactExports.useCallback((aiIndex, drawnTile) => {
     const handIdx = aiIndex - 1;
-    const currentHand = aiHands[handIdx] ? [...aiHands[handIdx]] : [];
+    const currentHand = aiHands[handIdx] || [];
     if (currentHand.length === 0) {
       const nextPlayer2 = (aiIndex + 1) % 4;
       if (nextPlayer2 === 0) {
@@ -13013,11 +12965,11 @@ function App() {
         setMessage("轮到你摸牌了");
       } else {
         setCurrentPlayer(nextPlayer2);
-        timerRef.current = setTimeout(() => aiPlay(nextPlayer2), 800);
+        timerRef.current = window.setTimeout(() => aiPlay(nextPlayer2), 800);
       }
       return;
     }
-    if (currentHand.length > 0 && checkHu([...currentHand, drawnTile])) {
+    if (checkHu([...currentHand, drawnTile])) {
       setMessage(`AI${aiIndex} 胡牌了！`);
       setGameStarted(false);
       clearTimer();
@@ -13027,14 +12979,9 @@ function App() {
     const discardTile2 = currentHand[discardIndex];
     setAiHands((prev) => {
       const updated = [...prev];
-      if (updated[handIdx] && updated[handIdx].length > 0) {
+      if (updated[handIdx]) {
         updated[handIdx] = currentHand.filter((_, i) => i !== discardIndex);
       }
-      return updated;
-    });
-    setAiLastDrawn((prev) => {
-      const updated = [...prev];
-      if (handIdx < updated.length) updated[handIdx] = null;
       return updated;
     });
     setDiscardedTiles((prev) => [...prev, discardTile2]);
@@ -13045,7 +12992,7 @@ function App() {
       setMessage("轮到你摸牌了");
     } else {
       setCurrentPlayer(nextPlayer);
-      timerRef.current = setTimeout(() => aiPlay(nextPlayer), 800);
+      timerRef.current = window.setTimeout(() => aiPlay(nextPlayer), 800);
     }
   }, [aiHands]);
   const handleTileClick = reactExports.useCallback((tile) => {
@@ -13110,7 +13057,8 @@ function App() {
           onHu: handleHu,
           onPeng: handlePeng,
           onGang: handleGang,
-          onChi: handleChi,
+          onChi: () => {
+          },
           onPass: handlePass,
           onDraw: drawTile,
           canHu,
