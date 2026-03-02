@@ -1,38 +1,30 @@
 .action-buttons {
   position: fixed;
-  bottom: 180px;
+  bottom: 160px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
-  gap: 14px;
+  gap: 10px;
   z-index: 200;
   flex-wrap: wrap;
   justify-content: center;
-  max-width: 90%;
+  max-width: 95%;
 }
 
 .action-btn {
-  padding: 14px 28px;
-  font-size: 18px;
+  padding: 10px 20px;
+  font-size: 16px;
   font-weight: bold;
   border: none;
-  border-radius: 12px;
+  border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+  box-shadow: 
+    0 3px 10px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
   position: relative;
   overflow: hidden;
-}
-
-.key-hint {
-  display: inline-block;
-  margin-left: 8px;
-  padding: 2px 6px;
-  font-size: 12px;
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 4px;
-  vertical-align: middle;
 }
 
 .action-btn::before {
@@ -42,133 +34,144 @@
   left: 0;
   right: 0;
   height: 50%;
-  background: linear-gradient(180deg, rgba(255,255,255,0.2) 0%, transparent 100%);
+  background: linear-gradient(180deg, rgba(255,255,255,0.15) 0%, transparent 100%);
   pointer-events: none;
 }
 
 .action-btn:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 
+    0 5px 15px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .action-btn:active {
   transform: translateY(0);
 }
 
+.key-hint {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 2px 5px;
+  font-size: 11px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+  vertical-align: middle;
+}
+
 .draw-btn {
-  background: linear-gradient(145deg, #3498db, #2471a3);
+  background: linear-gradient(145deg, #3b82f6, #2563eb);
   color: white;
-  border: 2px solid #5dade2;
+  border: 2px solid #60a5fa;
 }
 
 .draw-btn:hover {
-  background: linear-gradient(145deg, #5dade2, #3498db);
+  background: linear-gradient(145deg, #60a5fa, #3b82f6);
 }
 
 .hu-btn {
-  background: linear-gradient(145deg, #e74c3c, #c0392b);
+  background: linear-gradient(145deg, #ef4444, #dc2626);
   color: white;
-  font-size: 20px;
-  border: 2px solid #ec7063;
-}
-
-.hu-btn:hover {
-  background: linear-gradient(145deg, #ec7063, #e74c3c);
-  animation: pulse 0.5s ease infinite;
+  font-size: 18px;
+  border: 2px solid #f87171;
+  animation: pulse 1.5s ease infinite;
 }
 
 @keyframes pulse {
   0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.08); }
+  50% { transform: scale(1.05); }
+}
+
+.hu-btn:hover {
+  background: linear-gradient(145deg, #f87171, #ef4444);
+  animation: none;
 }
 
 .peng-btn {
-  background: linear-gradient(145deg, #e67e22, #d35400);
+  background: linear-gradient(145deg, #f97316, #ea580c);
   color: white;
-  border: 2px solid #f39c12;
+  border: 2px solid #fb923c;
 }
 
 .peng-btn:hover {
-  background: linear-gradient(145deg, #f39c12, #e67e22);
+  background: linear-gradient(145deg, #fb923c, #f97316);
 }
 
 .gang-btn {
-  background: linear-gradient(145deg, #f1c40f, #d4ac0d);
-  color: #333;
-  border: 2px solid #f7dc6f;
+  background: linear-gradient(145deg, #eab308, #ca8a04);
+  color: #1a1a1a;
+  border: 2px solid #facc15;
 }
 
 .gang-btn:hover {
-  background: linear-gradient(145deg, #f7dc6f, #f1c40f);
+  background: linear-gradient(145deg, #facc15, #eab308);
 }
 
 .chi-btn {
-  background: linear-gradient(145deg, #1abc9c, #148f77);
+  background: linear-gradient(145deg, #22c55e, #16a34a);
   color: white;
-  border: 2px solid #48c9b0;
+  border: 2px solid #4ade80;
 }
 
 .chi-btn:hover {
-  background: linear-gradient(145deg, #48c9b0, #1abc9c);
+  background: linear-gradient(145deg, #4ade80, #22c55e);
 }
 
 .pass-btn {
-  background: linear-gradient(145deg, #95a5a6, #7f8c8d);
+  background: linear-gradient(145deg, #6b7280, #4b5563);
   color: white;
-  border: 2px solid #bdc3c7;
+  border: 2px solid #9ca3af;
 }
 
 .pass-btn:hover {
-  background: linear-gradient(145deg, #bdc3c7, #95a5a6);
+  background: linear-gradient(145deg, #9ca3af, #6b7280);
 }
 
 @media (min-width: 1200px) {
   .action-buttons {
-    bottom: 160px;
-    gap: 16px;
+    bottom: 180px;
+    gap: 12px;
   }
   
   .action-btn {
-    padding: 16px 32px;
-    font-size: 20px;
+    padding: 12px 24px;
+    font-size: 18px;
   }
   
   .hu-btn {
-    font-size: 22px;
+    font-size: 20px;
   }
 }
 
 @media (max-width: 768px) {
   .action-buttons {
-    bottom: 120px;
-    gap: 10px;
+    bottom: 140px;
+    gap: 8px;
   }
   
   .action-btn {
-    padding: 10px 20px;
-    font-size: 15px;
-    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 14px;
+    border-radius: 6px;
   }
   
   .hu-btn {
-    font-size: 17px;
+    font-size: 16px;
+  }
+  
+  .key-hint {
+    display: none;
   }
 }
 
 @media (max-width: 480px) {
   .action-buttons {
-    bottom: 110px;
-    gap: 8px;
-    padding: 0 5px;
+    bottom: 120px;
+    gap: 6px;
   }
   
   .action-btn {
-    padding: 8px 14px;
+    padding: 6px 12px;
     font-size: 13px;
-    border-radius: 6px;
-  }
-  
-  .hu-btn {
-    font-size: 15px;
   }
 }

@@ -2,103 +2,69 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 .hand-tiles {
   display: flex;
-  gap: 4px;
+  gap: 3px;
   flex-wrap: wrap;
   justify-content: center;
+  padding: 8px 16px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
 }
 
 .melds {
   display: flex;
-  gap: 10px;
-  margin-bottom: 6px;
+  gap: 8px;
+  margin-bottom: 4px;
 }
 
 .meld {
   display: flex;
-  gap: 2px;
+  gap: 1px;
 }
 
 .meld.peng {
-  border: 3px solid #e74c3c;
+  border: 2px solid #e57373;
   border-radius: 6px;
-  padding: 3px;
-  background: rgba(231, 76, 60, 0.15);
+  padding: 2px;
+  background: rgba(229, 115, 115, 0.15);
 }
 
 .meld.gang {
-  border: 3px solid #f39c12;
+  border: 2px solid #ffb74d;
   border-radius: 6px;
-  padding: 3px;
-  background: rgba(243, 156, 18, 0.15);
+  padding: 2px;
+  background: rgba(255, 183, 77, 0.15);
 }
 
 .meld.chi {
-  border: 3px solid #3498db;
+  border: 2px solid #81c784;
   border-radius: 6px;
-  padding: 3px;
-  background: rgba(52, 152, 219, 0.15);
-}
-
-@media (min-width: 1200px) {
-  .hand-tiles {
-    gap: 6px;
-  }
-  
-  .melds {
-    gap: 14px;
-    margin-bottom: 8px;
-  }
-  
-  .meld {
-    gap: 3px;
-  }
+  padding: 2px;
+  background: rgba(129, 199, 132, 0.15);
 }
 
 @media (max-width: 768px) {
   .hand-tiles {
     gap: 2px;
+    padding: 6px 10px;
   }
   
   .melds {
     gap: 6px;
-    margin-bottom: 4px;
-  }
-  
-  .meld {
-    gap: 1px;
-  }
-  
-  .meld.peng,
-  .meld.gang,
-  .meld.chi {
-    padding: 2px;
-    border-width: 2px;
   }
 }
 
 @media (max-width: 480px) {
-  .player-hand {
-    gap: 6px;
-  }
-  
   .hand-tiles {
     gap: 1px;
+    padding: 4px 8px;
   }
   
   .melds {
     gap: 4px;
-    margin-bottom: 2px;
-  }
-  
-  .meld.peng,
-  .meld.gang,
-  .meld.chi {
-    padding: 1px;
-    border-width: 1px;
   }
 }
