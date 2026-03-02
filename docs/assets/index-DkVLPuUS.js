@@ -12565,6 +12565,40 @@ function canChi(hand, tile) {
   }
   return false;
 }
+function findChiOptions(hand, tile) {
+  if (tile.suit > 3) return [];
+  const options = [];
+  const num = tile.num;
+  const suit = tile.suit;
+  if (num >= 2 && num <= 8) {
+    const has1 = hand.some((t) => t.suit === suit && t.num === num - 1);
+    const has2 = hand.some((t) => t.suit === suit && t.num === num + 1);
+    if (has1 && has2) {
+      const t1 = hand.filter((t) => t.suit === suit && t.num === num - 1)[0];
+      const t2 = hand.filter((t) => t.suit === suit && t.num === num + 1)[0];
+      options.push([t1, t2, tile]);
+    }
+  }
+  if (num >= 3) {
+    const has1 = hand.some((t) => t.suit === suit && t.num === num - 2);
+    const has2 = hand.some((t) => t.suit === suit && t.num === num - 1);
+    if (has1 && has2) {
+      const t1 = hand.filter((t) => t.suit === suit && t.num === num - 2)[0];
+      const t2 = hand.filter((t) => t.suit === suit && t.num === num - 1)[0];
+      options.push([t1, t2, tile]);
+    }
+  }
+  if (num <= 7) {
+    const has1 = hand.some((t) => t.suit === suit && t.num === num + 1);
+    const has2 = hand.some((t) => t.suit === suit && t.num === num + 2);
+    if (has1 && has2) {
+      const t1 = hand.filter((t) => t.suit === suit && t.num === num + 1)[0];
+      const t2 = hand.filter((t) => t.suit === suit && t.num === num + 2)[0];
+      options.push([t1, t2, tile]);
+    }
+  }
+  return options;
+}
 const huCache = /* @__PURE__ */ new Map();
 function getCacheKey(hand) {
   return hand.map((t) => `${t.suit}-${t.num}`).sort().join(",");
@@ -12651,7 +12685,10 @@ const PlayerHand = reactExports.memo(function PlayerHand2({
   lastDrawn,
   pengs,
   gangs,
-  chis
+  chis,
+  chiOptions = [],
+  selectedChiOption = -1,
+  onChiOptionClick
 }) {
   const sortedHand = reactExports.useMemo(() => {
     return [...hand].sort((a, b) => {
@@ -12705,9 +12742,25 @@ const PlayerHand = reactExports.memo(function PlayerHand2({
       return null;
     });
   }, [pengs, gangs, chis]);
+  const renderChiOptions = reactExports.useMemo(() => {
+    if (chiOptions.length === 0) return null;
+    return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "chi-options-container", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("p", { children: "选择要吃的牌：" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "chi-options", children: chiOptions.map((option, idx) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "button",
+        {
+          className: `chi-option-btn ${selectedChiOption === idx ? "selected" : ""}`,
+          onClick: () => onChiOptionClick?.(idx),
+          children: option.map((t) => `${t.suit}-${t.num}`).join(" + ")
+        },
+        idx
+      )) })
+    ] });
+  }, [chiOptions, selectedChiOption, onChiOptionClick]);
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "player-hand", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "melds", children: renderMelds }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "hand-tiles", children: renderHand })
+    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "hand-tiles", children: renderHand }),
+    renderChiOptions
   ] });
 });
 const Opponents = reactExports.memo(function Opponents2({ opponents }) {
@@ -12822,17 +12875,13 @@ function App() {
   const [gameStarted, setGameStarted] = reactExports.useState(false);
   const [message, setMessage] = reactExports.useState("");
   const [aiHands, setAiHands] = reactExports.useState([[], [], []]);
+  const [chiOptions, setChiOptions] = reactExports.useState([]);
+  const [selectedChiOption, setSelectedChiOption] = reactExports.useState(-1);
   const isPlayerTurn = currentPlayer === 0;
-  const timerRef = reactExports.useRef(null);
-  const clearTimer = () => {
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-      timerRef.current = null;
-    }
-  };
   const startGame = reactExports.useCallback(() => {
-    clearTimer();
     setIsLoading(true);
+    setChiOptions([]);
+    setSelectedChiOption(-1);
     setTimeout(() => {
       const allTiles = shuffleTiles(createTiles());
       setTiles(allTiles);
@@ -12889,12 +12938,34 @@ function App() {
     setSelectedTile(null);
     setPlayerLastDrawn(null);
     setHasDrawn(false);
+    setChiOptions([]);
+    setSelectedChiOption(-1);
     setCurrentPlayer(1);
     setMessage("下家摸牌中...");
-    timerRef.current = window.setTimeout(() => {
+    setTimeout(() => {
       aiPlay(1);
     }, 800);
   }, [isPlayerTurn, hasDrawn, playerHand]);
+  const handleTileClick = reactExports.useCallback((tile) => {
+    if (selectedChiOption >= 0) {
+      const currentOption = chiOptions[selectedChiOption];
+      const remaining = playerHand.filter(
+        (t) => !currentOption.some((o) => o.id === t.id)
+      );
+      if (remaining.length > 0) {
+        discardTile(remaining[0]);
+      }
+      return;
+    }
+    if (isPlayerTurn && hasDrawn) {
+      setSelectedTile(tile);
+    }
+  }, [isPlayerTurn, hasDrawn, selectedChiOption, chiOptions, playerHand, discardTile]);
+  reactExports.useEffect(() => {
+    if (selectedTile && hasDrawn && isPlayerTurn && selectedChiOption < 0) {
+      discardTile(selectedTile);
+    }
+  }, [selectedTile, hasDrawn, isPlayerTurn, discardTile, selectedChiOption]);
   const handlePeng = reactExports.useCallback(() => {
     if (!lastDiscarded || !canPeng(playerHand, lastDiscarded)) return;
     const matchingTiles = playerHand.filter((t) => t.suit === lastDiscarded.suit && t.num === lastDiscarded.num);
@@ -12917,42 +12988,49 @@ function App() {
     setPlayerLastDrawn(null);
     setHasDrawn(false);
     setMessage("杠了！继续摸牌");
-    timerRef.current = window.setTimeout(() => drawTile(), 500);
+    setTimeout(() => drawTile(), 500);
   }, [playerLastDrawn, playerHand, drawTile]);
-  const handleHu = reactExports.useCallback(() => {
-    if (checkHu(playerHand)) {
-      setMessage("🎉 胡牌了！恭喜！");
-      setGameStarted(false);
-      clearTimer();
-    }
-  }, [playerHand]);
   const handleChi = reactExports.useCallback(() => {
     if (!lastDiscarded || !canChi(playerHand, lastDiscarded)) return;
     const options = findChiOptions(playerHand, lastDiscarded);
     if (options.length > 0) {
-      const option = options[0];
-      const newHand = playerHand.filter(
-        (t) => !option.some((o) => o.id === t.id)
-      );
-      setPlayerHand([...newHand, lastDiscarded]);
-      setDiscardedTiles((prev) => prev.filter((t) => t.id !== lastDiscarded.id));
-      setLastDiscarded(null);
-      setHasDrawn(true);
-      setMessage("吃了！请打出一张牌");
+      setChiOptions(options);
+      setMessage("请选择吃牌组合 (点击)");
     }
   }, [lastDiscarded, playerHand]);
+  const selectChiOption = reactExports.useCallback((index) => {
+    const option = chiOptions[index];
+    if (!option) return;
+    const newHand = playerHand.filter(
+      (t) => !option.some((o) => o.id === t.id)
+    );
+    setPlayerHand([...newHand, lastDiscarded]);
+    setDiscardedTiles((prev) => prev.filter((t) => t.id !== lastDiscarded.id));
+    setLastDiscarded(null);
+    setChiOptions([]);
+    setSelectedChiOption(index);
+    setHasDrawn(true);
+    setMessage("吃了！请选择要打出的牌");
+  }, [chiOptions, lastDiscarded, playerHand]);
+  const handleHu = reactExports.useCallback(() => {
+    if (checkHu(playerHand)) {
+      setMessage("🎉 胡牌了！恭喜！");
+      setGameStarted(false);
+    }
+  }, [playerHand]);
   const handlePass = reactExports.useCallback(() => {
     setSelectedTile(null);
+    setChiOptions([]);
+    setSelectedChiOption(-1);
     setCurrentPlayer(1);
     setMessage("下家摸牌中...");
-    timerRef.current = window.setTimeout(() => aiPlay(1), 800);
+    setTimeout(() => aiPlay(1), 800);
   }, []);
   const aiPlay = reactExports.useCallback((aiIndex) => {
     if (!gameStarted) return;
     if (tiles.length === 0) {
       setMessage("流局！");
       setGameStarted(false);
-      clearTimer();
       return;
     }
     const newTiles = [...tiles];
@@ -12966,7 +13044,7 @@ function App() {
       updated[handIdx] = sortHand([...updated[handIdx], drawnTile]);
       return updated;
     });
-    timerRef.current = window.setTimeout(() => {
+    setTimeout(() => {
       aiDiscard(aiIndex, drawnTile);
     }, 500);
   }, [gameStarted, tiles]);
@@ -12980,14 +13058,13 @@ function App() {
         setMessage("轮到你摸牌了");
       } else {
         setCurrentPlayer(nextPlayer2);
-        timerRef.current = window.setTimeout(() => aiPlay(nextPlayer2), 800);
+        setTimeout(() => aiPlay(nextPlayer2), 800);
       }
       return;
     }
     if (checkHu([...currentHand, drawnTile])) {
       setMessage(`AI${aiIndex} 胡牌了！`);
       setGameStarted(false);
-      clearTimer();
       return;
     }
     const discardIndex = Math.floor(Math.random() * currentHand.length);
@@ -13007,61 +13084,33 @@ function App() {
       setMessage("轮到你摸牌了");
     } else {
       setCurrentPlayer(nextPlayer);
-      timerRef.current = window.setTimeout(() => aiPlay(nextPlayer), 800);
+      setTimeout(() => aiPlay(nextPlayer), 800);
     }
   }, [aiHands]);
-  const handleTileClick = reactExports.useCallback((tile) => {
-    if (isPlayerTurn && hasDrawn) {
-      setSelectedTile(tile);
-    }
-  }, [isPlayerTurn, hasDrawn]);
   reactExports.useEffect(() => {
-    if (selectedTile && hasDrawn && isPlayerTurn) {
-      discardTile(selectedTile);
-    }
-  }, [selectedTile, hasDrawn, isPlayerTurn, discardTile]);
-  reactExports.useEffect(() => {
-    return () => clearTimer();
-  }, []);
+    if (!gameStarted || !isPlayerTurn) return;
+    if (chiOptions.length > 0) return;
+    const timer = setTimeout(() => {
+      if (!hasDrawn && !playerLastDrawn) {
+        drawTile();
+        return;
+      }
+      const canHuNow = checkHu(playerHand);
+      const canPengNow = lastDiscarded ? canPeng(playerHand, lastDiscarded) : false;
+      const canGangNow = playerLastDrawn ? canGang(playerHand, playerLastDrawn) : false;
+      const canChiNow = lastDiscarded ? canChi(playerHand, lastDiscarded) : false;
+      if (!canHuNow && !canPengNow && !canGangNow && !canChiNow && hasDrawn && !playerLastDrawn) {
+        if (playerHand.length > 0) {
+          setSelectedTile(playerHand[0]);
+        }
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [gameStarted, isPlayerTurn, hasDrawn, playerHand, playerLastDrawn, lastDiscarded, chiOptions, drawTile]);
   const canHu = reactExports.useMemo(() => checkHu(playerHand), [playerHand]);
   const canPengResult = reactExports.useMemo(() => lastDiscarded ? canPeng(playerHand, lastDiscarded) : false, [lastDiscarded, playerHand]);
   const canGangResult = reactExports.useMemo(() => playerLastDrawn ? canGang(playerHand, playerLastDrawn) : false, [playerLastDrawn, playerHand]);
   const canChiResult = reactExports.useMemo(() => lastDiscarded ? canChi(playerHand, lastDiscarded) : false, [lastDiscarded, playerHand]);
-  reactExports.useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (!gameStarted || !isPlayerTurn) return;
-      switch (e.key) {
-        case "h":
-        case "H":
-          if (canHu) handleHu();
-          break;
-        case "p":
-        case "P":
-          if (canPengResult) handlePeng();
-          break;
-        case "g":
-        case "G":
-          if (canGangResult) handleGang();
-          break;
-        case "c":
-        case "C":
-          if (canChiResult) handleChi();
-          break;
-        case " ":
-        case "Enter":
-          if (!hasDrawn) {
-            e.preventDefault();
-            drawTile();
-          }
-          break;
-        case "Escape":
-          handlePass();
-          break;
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [gameStarted, isPlayerTurn, canHu, canPengResult, canGangResult, canChiResult, hasDrawn, handleHu, handlePeng, handleGang, handleChi, handlePass, drawTile]);
   const opponents = reactExports.useMemo(() => ({
     left: { name: "上家 AI", handCount: 13, position: "left" },
     opposite: { name: "对家 AI", handCount: 13, position: "opposite" },
@@ -13098,9 +13147,24 @@ function App() {
           lastDrawn: playerLastDrawn,
           pengs: playerPengs,
           gangs: playerGangs,
-          chis: []
+          chis: [],
+          chiOptions,
+          selectedChiOption,
+          onChiOptionClick: selectChiOption
         }
       ) }),
+      chiOptions.length > 0 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "chi-selection", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("p", { children: "选择吃牌组合：" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "chi-options", children: chiOptions.map((option, idx) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+          "button",
+          {
+            className: `chi-option ${selectedChiOption === idx ? "selected" : ""}`,
+            onClick: () => selectChiOption(idx),
+            children: option.map((t) => t.id.slice(0, 6)).join(" ")
+          },
+          idx
+        )) })
+      ] }),
       /* @__PURE__ */ jsxRuntimeExports.jsx(
         ActionButtons,
         {

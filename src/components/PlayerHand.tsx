@@ -11,6 +11,9 @@ interface PlayerHandProps {
   pengs: TileType[][];
   gangs: TileType[][];
   chis: TileType[][];
+  chiOptions?: TileType[][];
+  selectedChiOption?: number;
+  onChiOptionClick?: (index: number) => void;
 }
 
 const PlayerHand = memo(function PlayerHand({ 
@@ -20,7 +23,10 @@ const PlayerHand = memo(function PlayerHand({
   lastDrawn, 
   pengs, 
   gangs, 
-  chis 
+  chis,
+  chiOptions = [],
+  selectedChiOption = -1,
+  onChiOptionClick
 }: PlayerHandProps) {
   const sortedHand = useMemo(() => {
     return [...hand].sort((a, b) => {
@@ -84,6 +90,28 @@ const PlayerHand = memo(function PlayerHand({
     });
   }, [pengs, gangs, chis]);
 
+  // 渲染吃牌选项
+  const renderChiOptions = useMemo(() => {
+    if (chiOptions.length === 0) return null;
+    
+    return (
+      <div className="chi-options-container">
+        <p>选择要吃的牌：</p>
+        <div className="chi-options">
+          {chiOptions.map((option, idx) => (
+            <button
+              key={idx}
+              className={`chi-option-btn ${selectedChiOption === idx ? 'selected' : ''}`}
+              onClick={() => onChiOptionClick?.(idx)}
+            >
+              {option.map(t => `${t.suit}-${t.num}`).join(' + ')}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }, [chiOptions, selectedChiOption, onChiOptionClick]);
+
   return (
     <div className="player-hand">
       <div className="melds">
@@ -92,6 +120,7 @@ const PlayerHand = memo(function PlayerHand({
       <div className="hand-tiles">
         {renderHand}
       </div>
+      {renderChiOptions}
     </div>
   );
 });
