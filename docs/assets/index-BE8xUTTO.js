@@ -12870,12 +12870,12 @@ function App() {
       setSelectedTile(null);
       setLastDiscarded(null);
       setCurrentPlayer(0);
-      setHasDrawn(false);
+      setHasDrawn(true);
       setPengs([]);
       setGangs([]);
       setChis([]);
       setGameStarted(true);
-      setMessage("游戏开始！请摸牌");
+      setMessage("请选择要打出的牌");
       setIsLoading(false);
     }, 300);
   }, []);
