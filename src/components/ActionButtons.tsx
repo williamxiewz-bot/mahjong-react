@@ -1,6 +1,21 @@
 import { memo, useMemo } from 'react';
 import './ActionButtons.css';
 
+interface ActionButtonsProps {
+  onHu: () => void;
+  onPeng: () => void;
+  onGang: () => void;
+  onChi: () => void;
+  onPass: () => void;
+  onDraw: () => void;
+  canHu: boolean;
+  canPeng: boolean;
+  canGang: boolean;
+  canChi: boolean;
+  isMyTurn: boolean;
+  hasDrawn: boolean;
+}
+
 const ActionButtons = memo(function ActionButtons({ 
   onHu, 
   onPeng, 
@@ -14,9 +29,9 @@ const ActionButtons = memo(function ActionButtons({
   canChi,
   isMyTurn,
   hasDrawn
-}) {
+}: ActionButtonsProps) {
   const buttons = useMemo(() => {
-    const btns = [];
+    const btns: JSX.Element[] = [];
     
     if (isMyTurn && !hasDrawn) {
       btns.push(

@@ -1,8 +1,27 @@
 import { memo, useMemo, useCallback } from 'react';
 import Tile from './Tile';
+import type { Tile as TileType } from '../mahjongGame';
 import './PlayerHand.css';
 
-const PlayerHand = memo(function PlayerHand({ hand, selectedTile, onTileClick, lastDrawn, pengs, gangs, chis }) {
+interface PlayerHandProps {
+  hand: TileType[];
+  selectedTile: TileType | null;
+  onTileClick: (tile: TileType) => void;
+  lastDrawn: TileType | null;
+  pengs: TileType[][];
+  gangs: TileType[][];
+  chis: TileType[][];
+}
+
+const PlayerHand = memo(function PlayerHand({ 
+  hand, 
+  selectedTile, 
+  onTileClick, 
+  lastDrawn, 
+  pengs, 
+  gangs, 
+  chis 
+}: PlayerHandProps) {
   const sortedHand = useMemo(() => {
     return [...hand].sort((a, b) => {
       if (a.suit !== b.suit) return a.suit - b.suit;
@@ -10,7 +29,7 @@ const PlayerHand = memo(function PlayerHand({ hand, selectedTile, onTileClick, l
     });
   }, [hand]);
 
-  const handleTileClick = useCallback((tile) => {
+  const handleTileClick = useCallback((tile: TileType) => {
     onTileClick(tile);
   }, [onTileClick]);
 
@@ -27,7 +46,7 @@ const PlayerHand = memo(function PlayerHand({ hand, selectedTile, onTileClick, l
   }, [sortedHand, selectedTile, handleTileClick, lastDrawn]);
 
   const renderMelds = useMemo(() => {
-    const melds = [];
+    const melds: { type: 'peng' | 'gang' | 'chi'; tiles: TileType[]; key: string }[] = [];
     pengs?.forEach((p, i) => melds.push({ type: 'peng', tiles: p, key: `peng-${i}` }));
     gangs?.forEach((g, i) => melds.push({ type: 'gang', tiles: g, key: `gang-${i}` }));
     chis?.forEach((c, i) => melds.push({ type: 'chi', tiles: c, key: `chi-${i}` }));

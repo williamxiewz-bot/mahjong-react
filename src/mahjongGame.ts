@@ -1,18 +1,25 @@
-export const TILE_CHARS = {
+// 麻将牌类型
+export interface Tile {
+  suit: number;  // 1=万子, 2=筒子, 3=条子, 4=字牌
+  num: number;   // 牌面数字
+  id: string;    // 唯一标识
+}
+
+export const TILE_CHARS: Record<number, string[]> = {
   1: ['🀇', '🀈', '🀉', '🀊', '🀋', '🀌', '🀍', '🀎', '🀏'],
   2: ['🀐', '🀑', '🀒', '🀓', '🀔', '🀕', '🀖', '🀗', '🀘'],
   3: ['🀙', '🀚', '🀛', '🀜', '🀝', '🀞', '🀟', '🀠', '🀡'],
   4: ['🀀', '🀁', '🀂', '🀃', '🀄', '🀅', '🀆'],
 };
 
-export const TILE_NAMES = {
+export const TILE_NAMES: Record<number, string[]> = {
   1: ['1万', '2万', '3万', '4万', '5万', '6万', '7万', '8万', '9万'],
   2: ['1筒', '2筒', '3筒', '4筒', '5筒', '6筒', '7筒', '8筒', '9筒'],
   3: ['1条', '2条', '3条', '4条', '5条', '6条', '7条', '8条', '9条'],
   4: ['东', '南', '西', '北', '中', '发', '白'],
 };
 
-export function getTileChar(tile) {
+export function getTileChar(tile: Tile): string {
   if (tile.suit <= 3) {
     return TILE_CHARS[tile.suit][tile.num - 1];
   } else if (tile.suit === 4) {
@@ -21,8 +28,9 @@ export function getTileChar(tile) {
   return '🀄';
 }
 
-export function createTiles() {
-  const tiles = [];
+export function createTiles(): Tile[] {
+  const tiles: Tile[] = [];
+  // 万子、筒子、条子各9种，每种4张
   for (let suit = 1; suit <= 3; suit++) {
     for (let num = 1; num <= 9; num++) {
       for (let i = 0; i < 4; i++) {
@@ -30,6 +38,7 @@ export function createTiles() {
       }
     }
   }
+  // 字牌7种，每种4张
   for (let i = 0; i < 7; i++) {
     for (let j = 0; j < 4; j++) {
       tiles.push({ suit: 4, num: i + 1, id: `4-${i + 1}-${j}` });
@@ -38,7 +47,7 @@ export function createTiles() {
   return tiles;
 }
 
-export function shuffleTiles(tiles) {
+export function shuffleTiles(tiles: Tile[]): Tile[] {
   const shuffled = [...tiles];
   for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -47,15 +56,15 @@ export function shuffleTiles(tiles) {
   return shuffled;
 }
 
-export function sortHand(hand) {
+export function sortHand(hand: Tile[]): Tile[] {
   return [...hand].sort((a, b) => {
     if (a.suit !== b.suit) return a.suit - b.suit;
     return a.num - b.num;
   });
 }
 
-export function canPeng(hand, tile) {
-  const counts = {};
+export function canPeng(hand: Tile[], tile: Tile): boolean {
+  const counts: Record<string, number> = {};
   hand.forEach(t => {
     const key = `${t.suit}-${t.num}`;
     counts[key] = (counts[key] || 0) + 1;
@@ -64,8 +73,8 @@ export function canPeng(hand, tile) {
   return (counts[key] || 0) >= 2;
 }
 
-export function canGang(hand, tile) {
-  const counts = {};
+export function canGang(hand: Tile[], tile: Tile): boolean {
+  const counts: Record<string, number> = {};
   hand.forEach(t => {
     const key = `${t.suit}-${t.num}`;
     counts[key] = (counts[key] || 0) + 1;
@@ -74,7 +83,7 @@ export function canGang(hand, tile) {
   return (counts[key] || 0) >= 3;
 }
 
-export function canChi(hand, tile) {
+export function canChi(hand: Tile[], tile: Tile): boolean {
   if (tile.suit > 3 || tile.suit === 0) return false;
 
   const sorted = [...hand].sort((a, b) => {
@@ -104,10 +113,10 @@ export function canChi(hand, tile) {
   return false;
 }
 
-export function findChiOptions(hand, tile) {
+export function findChiOptions(hand: Tile[], tile: Tile): Tile[][] {
   if (tile.suit > 3) return [];
 
-  const options = [];
+  const options: Tile[][] = [];
   const num = tile.num;
   const suit = tile.suit;
 
@@ -142,9 +151,9 @@ export function findChiOptions(hand, tile) {
   return options;
 }
 
-export function findPairs(hand) {
-  const pairs = [];
-  const counts = {};
+export function findPairs(hand: Tile[]): Tile[] {
+  const pairs: Tile[] = [];
+  const counts: Record<string, number> = {};
   hand.forEach(t => {
     const key = `${t.suit}-${t.num}`;
     counts[key] = (counts[key] || 0) + 1;
@@ -152,25 +161,25 @@ export function findPairs(hand) {
   Object.keys(counts).forEach(key => {
     if (counts[key] >= 2) {
       const [suit, num] = key.split('-').map(Number);
-      pairs.push({ suit, num });
+      pairs.push({ suit, num, id: `pair-${key}` });
     }
   });
   return pairs;
 }
 
 // 胡牌检测缓存
-const huCache = new Map();
+const huCache = new Map<string, boolean>();
 
-function getCacheKey(hand) {
+function getCacheKey(hand: Tile[]): string {
   return hand.map(t => `${t.suit}-${t.num}`).sort().join(',');
 }
 
-export function checkHu(hand) {
+export function checkHu(hand: Tile[]): boolean {
   if (hand.length !== 14) return false;
 
   const cacheKey = getCacheKey(hand);
   if (huCache.has(cacheKey)) {
-    return huCache.get(cacheKey);
+    return huCache.get(cacheKey)!;
   }
 
   const sorted = [...hand].sort((a, b) => {
@@ -178,7 +187,7 @@ export function checkHu(hand) {
     return a.num - b.num;
   });
 
-  const counts = {};
+  const counts: Record<string, number> = {};
   sorted.forEach(t => {
     const key = `${t.suit}-${t.num}`;
     counts[key] = (counts[key] || 0) + 1;
@@ -186,7 +195,7 @@ export function checkHu(hand) {
 
   const keys = Object.keys(counts);
   
-  const tryRemovePair = (cnt) => {
+  const tryRemovePair = (cnt: Record<string, number>): boolean => {
     for (const key of keys) {
       if (cnt[key] >= 2) {
         const newCnt = { ...cnt };
@@ -199,7 +208,7 @@ export function checkHu(hand) {
     return false;
   };
 
-  const canFormAll = (cnt) => {
+  const canFormAll = (cnt: Record<string, number>): boolean => {
     const remaining = Object.entries(cnt).filter(([, v]) => v > 0);
     if (remaining.length === 0) return true;
 
@@ -234,6 +243,6 @@ export function checkHu(hand) {
 }
 
 // 清除胡牌缓存
-export function clearHuCache() {
+export function clearHuCache(): void {
   huCache.clear();
 }

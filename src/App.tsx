@@ -7,7 +7,8 @@ import {
   canGang, 
   canChi, 
   checkHu,
-  findChiOptions 
+  findChiOptions,
+  type Tile
 } from './mahjongGame';
 import PlayerHand from './components/PlayerHand';
 import Opponents from './components/Opponents';
@@ -15,21 +16,27 @@ import TableArea from './components/TableArea';
 import ActionButtons from './components/ActionButtons';
 import './App.css';
 
+interface OpponentInfo {
+  name: string;
+  handCount: number;
+}
+
 function App() {
   const [isLoading, setIsLoading] = useState(false);
-  const [tiles, setTiles] = useState([]);
-  const [playerHand, setPlayerHand] = useState([]);
-  const [discardedTiles, setDiscardedTiles] = useState([]);
-  const [selectedTile, setSelectedTile] = useState(null);
-  const [lastDrawn, setLastDrawn] = useState(null);
-  const [lastDiscarded, setLastDiscarded] = useState(null);
+  const [tiles, setTiles] = useState<Tile[]>([]);
+  const [playerHand, setPlayerHand] = useState<Tile[]>([]);
+  const [discardedTiles, setDiscardedTiles] = useState<Tile[]>([]);
+  const [selectedTile, setSelectedTile] = useState<Tile | null>(null);
+  const [lastDrawn, setLastDrawn] = useState<Tile | null>(null);
+  const [lastDiscarded, setLastDiscarded] = useState<Tile | null>(null);
   const [currentPlayer, setCurrentPlayer] = useState(0);
   const [hasDrawn, setHasDrawn] = useState(false);
-  const [pengs, setPengs] = useState([]);
-  const [gangs, setGangs] = useState([]);
-  const [chis, setChis] = useState([]);
+  const [pengs, setPengs] = useState<Tile[][]>([]);
+  const [gangs, setGangs] = useState<Tile[][]>([]);
+  const [chis, setChis] = useState<Tile[][]>([]);
   const [gameStarted, setGameStarted] = useState(false);
   const [message, setMessage] = useState('');
+  const [aiHand, setAiHand] = useState<Tile[]>([]);
 
   const startGame = useCallback(() => {
     setIsLoading(true);
@@ -63,6 +70,7 @@ function App() {
     
     const newTiles = [...tiles];
     const drawnTile = newTiles.shift();
+    if (!drawnTile) return;
     setTiles(newTiles);
     
     setPlayerHand(prev => sortHand([...prev, drawnTile]));
@@ -77,7 +85,7 @@ function App() {
     }
   }, [currentPlayer, hasDrawn, tiles, playerHand]);
 
-  const discardTile = useCallback((tile) => {
+  const discardTile = useCallback((tile: Tile) => {
     if (currentPlayer !== 0 || !hasDrawn) return;
     
     const newHand = playerHand.filter(t => t.id !== tile.id);
@@ -95,7 +103,7 @@ function App() {
     }, 1000);
   }, [currentPlayer, hasDrawn, playerHand]);
 
-  const handleTileClick = useCallback((tile) => {
+  const handleTileClick = useCallback((tile: Tile) => {
     if (currentPlayer === 0 && hasDrawn) {
       setSelectedTile(tile);
     }
@@ -117,13 +125,16 @@ function App() {
   const handlePeng = useCallback(() => {
     if (!lastDiscarded || !canPeng(playerHand, lastDiscarded)) return;
     
-    const pengTiles = [
+    const matchingTiles = playerHand.filter(t => t.suit === lastDiscarded.suit && t.num === lastDiscarded.num);
+    if (matchingTiles.length < 2) return;
+    
+    const pengTiles: Tile[] = [
       lastDiscarded,
-      playerHand.find(t => t.suit === lastDiscarded.suit && t.num === lastDiscarded.num),
-      playerHand.find(t => t.suit === lastDiscarded.suit && t.num === lastDiscarded.num)
+      matchingTiles[0],
+      matchingTiles[1]
     ];
     
-    const newHand = playerHand.filter(t => t.id !== pengTiles[1].id && t.id !== pengTiles[2].id);
+    const newHand = playerHand.filter(t => t.id !== matchingTiles[0].id && t.id !== matchingTiles[1].id);
     setPlayerHand(newHand);
     setPengs(prev => [...prev, pengTiles]);
     setDiscardedTiles(prev => prev.filter(t => t.id !== lastDiscarded.id));
@@ -154,9 +165,6 @@ function App() {
     }
   }, [lastDiscarded, playerHand]);
 
-  // AI 手牌状态
-  const [aiHand, setAiHand] = useState([]);
-
   const aiPlay = useCallback(() => {
     const newTiles = [...tiles];
     if (newTiles.length === 0) {
@@ -167,6 +175,7 @@ function App() {
     
     // AI 摸牌
     const drawnTile = newTiles.shift();
+    if (!drawnTile) return;
     setTiles(newTiles);
     
     // 更新 AI 手牌
@@ -196,7 +205,7 @@ function App() {
     setTimeout(() => {
       aiPlay();
     }, 1000);
-  }, []);
+  }, [aiPlay]);
 
   useEffect(() => {
     if (selectedTile && hasDrawn && currentPlayer === 0) {
@@ -215,7 +224,7 @@ function App() {
 
   // 键盘快捷键
   useEffect(() => {
-    const handleKeyDown = (e) => {
+    const handleKeyDown = (e: KeyboardEvent) => {
       if (!gameStarted || currentPlayer !== 0) return;
       
       switch (e.key) {
@@ -254,7 +263,7 @@ function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [gameStarted, currentPlayer, canHu, canPengResult, canGangResult, canChiResult, hasDrawn, handleHu, handlePeng, handleGang, handleChi, handlePass, drawTile]);
 
-  const opponents = useMemo(() => ({
+  const opponents = useMemo((): Record<string, OpponentInfo> => ({
     top: { name: '上家', handCount: 13 },
     left: { name: '对家', handCount: 13 },
     right: { name: '下家', handCount: 13 }
