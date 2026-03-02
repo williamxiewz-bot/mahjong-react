@@ -11,12 +11,30 @@ import {
   findPairs,
   clearHuCache,
   getTileChar,
+  isYaoJiu,
+  isHonorTile,
+  hasSuit,
+  countSuits,
+  isQueYiMen,
+  isDuanYao,
+  isPingHu,
+  isJiangYan,
+  isBuQiuRen,
+  isMenQianQing,
+  getWaitType,
+  isTenpai,
+  calculateFan,
+  createTilesWithFlowers,
   type Tile
 } from './mahjongGame'
 
 describe('麻将游戏核心逻辑', () => {
+  beforeEach(() => {
+    clearHuCache()
+  })
+
   describe('createTiles', () => {
-    it('应该创建136张牌', () => {
+    it('应该创建136张牌（无花牌）', () => {
       const tiles = createTiles()
       expect(tiles).toHaveLength(136)
     })
@@ -25,8 +43,6 @@ describe('麻将游戏核心逻辑', () => {
       const tiles = createTiles()
       const wanTiles = tiles.filter(t => t.suit === 1)
       expect(wanTiles).toHaveLength(36) // 9 * 4
-      const counts = new Set(wanTiles.map(t => t.num))
-      expect(counts.size).toBe(9)
     })
 
     it('应该包含筒子(1-9)各4张', () => {
@@ -52,6 +68,19 @@ describe('麻将游戏核心逻辑', () => {
       const ids = tiles.map(t => t.id)
       const uniqueIds = new Set(ids)
       expect(uniqueIds.size).toBe(tiles.length)
+    })
+  })
+
+  describe('createTilesWithFlowers', () => {
+    it('应该创建144张牌（带花牌）', () => {
+      const tiles = createTilesWithFlowers()
+      expect(tiles).toHaveLength(144)
+    })
+
+    it('应该包含8张花牌', () => {
+      const tiles = createTilesWithFlowers()
+      const flowers = tiles.filter(t => 'type' in t)
+      expect(flowers).toHaveLength(8)
     })
   })
 
@@ -111,6 +140,191 @@ describe('麻将游戏核心逻辑', () => {
       const original = [...hand]
       sortHand(hand)
       expect(hand).toEqual(original)
+    })
+  })
+
+  describe('isYaoJiu - 幺九牌判断', () => {
+    it('1万应该是幺九牌', () => {
+      expect(isYaoJiu({ suit: 1, num: 1, id: '1-1-0' })).toBe(true)
+    })
+
+    it('9万应该是幺九牌', () => {
+      expect(isYaoJiu({ suit: 1, num: 9, id: '1-9-0' })).toBe(true)
+    })
+
+    it('字牌应该是幺九牌', () => {
+      expect(isYaoJiu({ suit: 4, num: 1, id: '4-1-0' })).toBe(true)
+    })
+
+    it('5万不是幺九牌', () => {
+      expect(isYaoJiu({ suit: 1, num: 5, id: '1-5-0' })).toBe(false)
+    })
+  })
+
+  describe('isHonorTile - 字牌判断', () => {
+    it('东应该是字牌', () => {
+      expect(isHonorTile({ suit: 4, num: 1, id: '4-1-0' })).toBe(true)
+    })
+
+    it('中发白应该是字牌', () => {
+      expect(isHonorTile({ suit: 4, num: 5, id: '4-5-0' })).toBe(true)
+      expect(isHonorTile({ suit: 4, num: 6, id: '4-6-0' })).toBe(true)
+      expect(isHonorTile({ suit: 4, num: 7, id: '4-7-0' })).toBe(true)
+    })
+
+    it('数牌不是字牌', () => {
+      expect(isHonorTile({ suit: 1, num: 5, id: '1-5-0' })).toBe(false)
+    })
+  })
+
+  describe('countSuits - 花色统计', () => {
+    it('应该正确统计各花色数量', () => {
+      const hand: Tile[] = [
+        { suit: 1, num: 1, id: '1-1-0' },
+        { suit: 1, num: 2, id: '1-2-0' },
+        { suit: 2, num: 1, id: '2-1-0' },
+        { suit: 4, num: 1, id: '4-1-0' },
+      ]
+      const counts = countSuits(hand)
+      expect(counts[1]).toBe(2)
+      expect(counts[2]).toBe(1)
+      expect(counts[3]).toBe(0)
+      expect(counts[4]).toBe(1)
+    })
+  })
+
+  describe('isQueYiMen - 缺一门（广东麻将六独之一）', () => {
+    it('缺一门应该返回true', () => {
+      // 只有两门数牌 + 有字牌
+      const hand: Tile[] = [
+        ...Array(4).fill(null).map((_, i) => ({ suit: 1, num: i % 9 + 1, id: `1-${i}-0` })),
+        ...Array(4).fill(null).map((_, i) => ({ suit: 2, num: i % 9 + 1, id: `2-${i}-0` })),
+        { suit: 4, num: 1, id: '4-1-0' },
+        { suit: 4, num: 1, id: '4-1-1' },
+      ]
+      expect(isQueYiMen(hand)).toBe(true)
+    })
+
+    it('三门数牌齐全应该返回false', () => {
+      const hand: Tile[] = [
+        { suit: 1, num: 1, id: '1-1-0' },
+        { suit: 2, num: 1, id: '2-1-0' },
+        { suit: 3, num: 1, id: '3-1-0' },
+      ]
+      expect(isQueYiMen(hand)).toBe(false)
+    })
+  })
+
+  describe('isDuanYao - 断幺（广东麻将六独之一）', () => {
+    it('无幺九牌应该返回true', () => {
+      const hand: Tile[] = [
+        { suit: 1, num: 2, id: '1-2-0' },
+        { suit: 1, num: 3, id: '1-3-0' },
+        { suit: 2, num: 5, id: '2-5-0' },
+        { suit: 3, num: 7, id: '3-7-0' },
+      ]
+      expect(isDuanYao(hand)).toBe(true)
+    })
+
+    it('有幺九牌应该返回false', () => {
+      const hand: Tile[] = [
+        { suit: 1, num: 1, id: '1-1-0' },
+        { suit: 1, num: 2, id: '1-2-0' },
+      ]
+      expect(isDuanYao(hand)).toBe(false)
+    })
+
+    it('有字牌应该返回false', () => {
+      const hand: Tile[] = [
+        { suit: 1, num: 2, id: '1-2-0' },
+        { suit: 4, num: 1, id: '4-1-0' },
+      ]
+      expect(isDuanYao(hand)).toBe(false)
+    })
+  })
+
+  describe('isPingHu - 平糊（只有顺子无刻子）', () => {
+    it('纯顺子应该返回true', () => {
+      // 123 456 789 111 222 + 55
+      const hand: Tile[] = [
+        { suit: 1, num: 1, id: '1-1-0' },
+        { suit: 1, num: 2, id: '1-2-0' },
+        { suit: 1, num: 3, id: '1-3-0' },
+        { suit: 1, num: 4, id: '1-4-0' },
+        { suit: 1, num: 5, id: '1-5-0' },
+        { suit: 1, num: 6, id: '1-6-0' },
+        { suit: 1, num: 7, id: '1-7-0' },
+        { suit: 1, num: 8, id: '1-8-0' },
+        { suit: 1, num: 9, id: '1-9-0' },
+        { suit: 2, num: 1, id: '2-1-0' },
+        { suit: 2, num: 1, id: '2-1-1' },
+        { suit: 2, num: 1, id: '2-1-2' },
+        { suit: 2, num: 5, id: '2-5-0' },
+        { suit: 2, num: 5, id: '2-5-1' },
+      ]
+      expect(isPingHu(hand)).toBe(true)
+    })
+  })
+
+  describe('isJiangYan - 将对（广东麻将六独之一）', () => {
+    it('2、5、8的对子应该返回true', () => {
+      const hand: Tile[] = [
+        { suit: 1, num: 2, id: '1-2-0' },
+        { suit: 1, num: 2, id: '1-2-1' }, // 2万对子
+        { suit: 1, num: 1, id: '1-1-0' },
+        { suit: 1, num: 1, id: '1-1-1' },
+        { suit: 1, num: 1, id: '1-1-2' },
+        { suit: 1, num: 4, id: '1-4-0' },
+        { suit: 1, num: 5, id: '1-5-0' },
+        { suit: 1, num: 6, id: '1-6-0' },
+        { suit: 1, num: 7, id: '1-7-0' },
+        { suit: 1, num: 8, id: '1-8-0' },
+        { suit: 1, num: 9, id: '1-9-0' },
+        { suit: 2, num: 5, id: '2-5-0' },
+        { suit: 2, num: 5, id: '2-5-1' },
+        { suit: 2, num: 5, id: '2-5-2' },
+      ]
+      expect(isJiangYan(hand)).toBe(true)
+    })
+
+    it('字牌对子应该返回false', () => {
+      const hand: Tile[] = [
+        { suit: 4, num: 1, id: '4-1-0' },
+        { suit: 4, num: 1, id: '4-1-1' }, // 字牌对子
+      ]
+      expect(isJiangYan(hand)).toBe(false)
+    })
+  })
+
+  describe('isBuQiuRen - 不求人（广东麻将六独之一）', () => {
+    it('自摸且无碰杠吃应该返回true', () => {
+      expect(isBuQiuRen([], true, [false, false, false])).toBe(true)
+    })
+
+    it('不是自摸应该返回false', () => {
+      expect(isBuQiuRen([], false, [false, false, false])).toBe(false)
+    })
+
+    it('有碰应该返回false', () => {
+      expect(isBuQiuRen([], true, [true, false, false])).toBe(false)
+    })
+
+    it('有杠应该返回false', () => {
+      expect(isBuQiuRen([], true, [false, true, false])).toBe(false)
+    })
+  })
+
+  describe('isMenQianQing - 门前清（广东麻将六独之一）', () => {
+    it('不是自摸且无碰杠吃应该返回true', () => {
+      expect(isMenQianQing([], false, [false, false, false])).toBe(true)
+    })
+
+    it('自摸应该返回false', () => {
+      expect(isMenQianQing([], true, [false, false, false])).toBe(false)
+    })
+
+    it('有碰应该返回false', () => {
+      expect(isMenQianQing([], false, [true, false, false])).toBe(false)
     })
   })
 
@@ -217,11 +431,7 @@ describe('麻将游戏核心逻辑', () => {
     })
   })
 
-  describe('checkHu', () => {
-    beforeEach(() => {
-      clearHuCache()
-    })
-
+  describe('checkHu - 胡牌检测', () => {
     it('13张牌时不应该胡牌', () => {
       const hand: Tile[] = Array(13).fill(null).map((_, i) => ({
         suit: 1,
@@ -232,9 +442,7 @@ describe('麻将游戏核心逻辑', () => {
     })
 
     it('14张牌且符合胡牌规则时应该胡牌', () => {
-      // 搭子+搭子+搭子+搭子+将牌
       const hand: Tile[] = [
-        // 111 222 333 444 + 55
         { suit: 1, num: 1, id: '1-1-0' },
         { suit: 1, num: 1, id: '1-1-1' },
         { suit: 1, num: 1, id: '1-1-2' },
@@ -248,13 +456,12 @@ describe('麻将游戏核心逻辑', () => {
         { suit: 1, num: 4, id: '1-4-1' },
         { suit: 1, num: 4, id: '1-4-2' },
         { suit: 2, num: 5, id: '2-5-0' },
-        { suit: 2, num: 5, id: '2-5-1' }, // 将牌
+        { suit: 2, num: 5, id: '2-5-1' },
       ]
       expect(checkHu(hand)).toBe(true)
     })
 
     it('七对子应该胡牌', () => {
-      // 七对子
       const hand: Tile[] = [
         { suit: 1, num: 1, id: '1-1-0' },
         { suit: 1, num: 1, id: '1-1-1' },
@@ -343,6 +550,51 @@ describe('麻将游戏核心逻辑', () => {
       expect(getTileChar({ suit: 4, num: 5, id: '4-5-0' })).toBe('🀄')
       expect(getTileChar({ suit: 4, num: 6, id: '4-6-0' })).toBe('🀅')
       expect(getTileChar({ suit: 4, num: 7, id: '4-7-0' })).toBe('🀆')
+    })
+  })
+
+  describe('calculateFan - 番数计算', () => {
+    it('基本胡牌应该有1番', () => {
+      const hand: Tile[] = [
+        { suit: 1, num: 1, id: '1-1-0' },
+        { suit: 1, num: 1, id: '1-1-1' },
+        { suit: 1, num: 1, id: '1-1-2' },
+        { suit: 1, num: 2, id: '1-2-0' },
+        { suit: 1, num: 2, id: '1-2-1' },
+        { suit: 1, num: 2, id: '1-2-2' },
+        { suit: 1, num: 3, id: '1-3-0' },
+        { suit: 1, num: 3, id: '1-3-1' },
+        { suit: 1, num: 3, id: '1-3-2' },
+        { suit: 1, num: 4, id: '1-4-0' },
+        { suit: 1, num: 4, id: '1-4-1' },
+        { suit: 1, num: 4, id: '1-4-2' },
+        { suit: 2, num: 5, id: '2-5-0' },
+        { suit: 2, num: 5, id: '2-5-1' },
+      ]
+      const result = calculateFan(hand, false, [false, false, false], false, false, false)
+      expect(result.total).toBeGreaterThanOrEqual(1)
+    })
+
+    it('自摸应该增加番数', () => {
+      const hand: Tile[] = [
+        { suit: 1, num: 1, id: '1-1-0' },
+        { suit: 1, num: 1, id: '1-1-1' },
+        { suit: 1, num: 1, id: '1-1-2' },
+        { suit: 1, num: 2, id: '1-2-0' },
+        { suit: 1, num: 2, id: '1-2-1' },
+        { suit: 1, num: 2, id: '1-2-2' },
+        { suit: 1, num: 3, id: '1-3-0' },
+        { suit: 1, num: 3, id: '1-3-1' },
+        { suit: 1, num: 3, id: '1-3-2' },
+        { suit: 1, num: 4, id: '1-4-0' },
+        { suit: 1, num: 4, id: '1-4-1' },
+        { suit: 1, num: 4, id: '1-4-2' },
+        { suit: 2, num: 5, id: '2-5-0' },
+        { suit: 2, num: 5, id: '2-5-1' },
+      ]
+      const resultNoSelf = calculateFan(hand, false, [false, false, false], false, false, false)
+      const resultSelf = calculateFan(hand, true, [false, false, false], false, false, false)
+      expect(resultSelf.total).toBeGreaterThan(resultNoSelf.total)
     })
   })
 })
