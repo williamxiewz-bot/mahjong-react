@@ -207,7 +207,7 @@ function App() {
     timerRef.current = setTimeout(() => aiPlay(1), 800);
   }, []);
 
-  // AI打牌
+  // AI打牌 (aiIndex: 1=下家, 2=对家, 3=上家)
   const aiPlay = useCallback((aiIndex: number) => {
     if (!gameStarted) return;
     
@@ -225,16 +225,20 @@ function App() {
     if (!drawnTile) return;
     setTiles(newTiles);
     
+    // aiIndex 1,2,3 -> aiHands[0,1,2]
+    const handIdx = aiIndex - 1;
+    
     // 更新AI手牌
     setAiHands(prev => {
       const updated = [...prev];
-      updated[aiIndex] = sortHand([...updated[aiIndex], drawnTile!]);
+      if (!updated[handIdx]) updated[handIdx] = [];
+      updated[handIdx] = sortHand([...updated[handIdx], drawnTile!]);
       return updated;
     });
     
     setAiLastDrawn(prev => {
       const updated = [...prev];
-      updated[aiIndex] = drawnTile;
+      if (handIdx < updated.length) updated[handIdx] = drawnTile;
       return updated;
     });
     
@@ -246,12 +250,28 @@ function App() {
 
   // AI打牌
   const aiDiscard = useCallback((aiIndex: number, drawnTile: Tile) => {
+    // aiIndex 1,2,3 -> aiHands[0,1,2]
+    const handIdx = aiIndex - 1;
+    
     // 获取当前手牌
-    const currentHand = aiHands[aiIndex] ? [...aiHands[aiIndex]] : [];
+    const currentHand = aiHands[handIdx] ? [...aiHands[handIdx]] : [];
+    
+    if (currentHand.length === 0) {
+      // 下一个玩家
+      const nextPlayer = (aiIndex + 1) % 4;
+      if (nextPlayer === 0) {
+        setCurrentPlayer(0);
+        setMessage('轮到你摸牌了');
+      } else {
+        setCurrentPlayer(nextPlayer);
+        timerRef.current = setTimeout(() => aiPlay(nextPlayer), 800);
+      }
+      return;
+    }
     
     // 检查胡牌
     if (currentHand.length > 0 && checkHu([...currentHand, drawnTile])) {
-      setMessage(`AI${aiIndex + 1} 胡牌了！`);
+      setMessage(`AI${aiIndex} 胡牌了！`);
       setGameStarted(false);
       clearTimer();
       return;
@@ -264,15 +284,15 @@ function App() {
     // 更新手牌
     setAiHands(prev => {
       const updated = [...prev];
-      if (updated[aiIndex]) {
-        updated[aiIndex] = currentHand.filter((_, i) => i !== discardIndex);
+      if (updated[handIdx] && updated[handIdx].length > 0) {
+        updated[handIdx] = currentHand.filter((_, i) => i !== discardIndex);
       }
       return updated;
     });
     
     setAiLastDrawn(prev => {
       const updated = [...prev];
-      updated[aiIndex] = null;
+      if (handIdx < updated.length) updated[handIdx] = null;
       return updated;
     });
     

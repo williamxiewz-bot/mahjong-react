@@ -12987,14 +12987,16 @@ function App() {
     const drawnTile = newTiles.shift();
     if (!drawnTile) return;
     setTiles(newTiles);
+    const handIdx = aiIndex - 1;
     setAiHands((prev) => {
       const updated = [...prev];
-      updated[aiIndex] = sortHand([...updated[aiIndex], drawnTile]);
+      if (!updated[handIdx]) updated[handIdx] = [];
+      updated[handIdx] = sortHand([...updated[handIdx], drawnTile]);
       return updated;
     });
     setAiLastDrawn((prev) => {
       const updated = [...prev];
-      updated[aiIndex] = drawnTile;
+      if (handIdx < updated.length) updated[handIdx] = drawnTile;
       return updated;
     });
     timerRef.current = setTimeout(() => {
@@ -13002,9 +13004,21 @@ function App() {
     }, 500);
   }, [gameStarted, tiles]);
   const aiDiscard = reactExports.useCallback((aiIndex, drawnTile) => {
-    const currentHand = aiHands[aiIndex] ? [...aiHands[aiIndex]] : [];
+    const handIdx = aiIndex - 1;
+    const currentHand = aiHands[handIdx] ? [...aiHands[handIdx]] : [];
+    if (currentHand.length === 0) {
+      const nextPlayer2 = (aiIndex + 1) % 4;
+      if (nextPlayer2 === 0) {
+        setCurrentPlayer(0);
+        setMessage("轮到你摸牌了");
+      } else {
+        setCurrentPlayer(nextPlayer2);
+        timerRef.current = setTimeout(() => aiPlay(nextPlayer2), 800);
+      }
+      return;
+    }
     if (currentHand.length > 0 && checkHu([...currentHand, drawnTile])) {
-      setMessage(`AI${aiIndex + 1} 胡牌了！`);
+      setMessage(`AI${aiIndex} 胡牌了！`);
       setGameStarted(false);
       clearTimer();
       return;
@@ -13013,14 +13027,14 @@ function App() {
     const discardTile2 = currentHand[discardIndex];
     setAiHands((prev) => {
       const updated = [...prev];
-      if (updated[aiIndex]) {
-        updated[aiIndex] = currentHand.filter((_, i) => i !== discardIndex);
+      if (updated[handIdx] && updated[handIdx].length > 0) {
+        updated[handIdx] = currentHand.filter((_, i) => i !== discardIndex);
       }
       return updated;
     });
     setAiLastDrawn((prev) => {
       const updated = [...prev];
-      updated[aiIndex] = null;
+      if (handIdx < updated.length) updated[handIdx] = null;
       return updated;
     });
     setDiscardedTiles((prev) => [...prev, discardTile2]);
