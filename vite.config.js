@@ -6,26 +6,13 @@ export default defineConfig({
   base: './',
   build: {
     target: 'es2020',
-    minify: 'esbuild',
     outDir: 'docs',
     sourcemap: false,
-    chunkSizeWarningLimit: 1000,
+    minify: false,
     rollupOptions: {
       output: {
-        manualChunks: (id) => {
-          if (id.includes('node_modules')) {
-            if (id.includes('react-dom')) {
-              return 'react-dom'
-            }
-            if (id.includes('react')) {
-              return 'react'
-            }
-          }
-        },
+        manualChunks: undefined,
       },
     },
-  },
-  optimizeDeps: {
-    include: [],
   },
 })
