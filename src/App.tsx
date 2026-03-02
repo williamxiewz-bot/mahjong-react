@@ -322,6 +322,47 @@ function App() {
     return () => clearTimer();
   }, []);
 
+  // 键盘快捷键
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!gameStarted || !isPlayerTurn) return;
+      
+      switch (e.key) {
+        case 'h':
+        case 'H':
+          if (canHu) handleHu();
+          break;
+        case 'p':
+        case 'P':
+          if (canPengResult) handlePeng();
+          break;
+        case 'g':
+        case 'G':
+          if (canGangResult) handleGang();
+          break;
+        case 'c':
+        case 'C':
+          if (canChiResult) handleChi();
+          break;
+        case ' ':
+        case 'Enter':
+          if (!hasDrawn) {
+            e.preventDefault();
+            drawTile();
+          }
+          break;
+        case 'Escape':
+          handlePass();
+          break;
+        default:
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [gameStarted, isPlayerTurn, canHu, canPengResult, canGangResult, canChiResult, hasDrawn, handleHu, handlePeng, handleGang, handleChi, handlePass, drawTile]);
+
   // 计算能力
   const canHu = useMemo(() => checkHu(playerHand), [playerHand]);
   const canPengResult = useMemo(() => lastDiscarded ? canPeng(playerHand, lastDiscarded) : false, [lastDiscarded, playerHand]);
