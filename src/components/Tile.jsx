@@ -14,6 +14,7 @@ const Tile = memo(function Tile({ tile, selected, onClick, faceDown, size }) {
   return (
     <div 
       className={tileClass}
+      data-suit={tile?.suit}
       onClick={handleClick}
       role="button"
       aria-pressed={selected}
