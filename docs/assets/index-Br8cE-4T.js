@@ -12669,7 +12669,7 @@ const Tile = reactExports.memo(function Tile2({ tile, selected = false, onClick,
     "div",
     {
       className: tileClass,
-      "data-suit": tile?.suit,
+      "data-suit": tile?.suit?.toString(),
       onClick: handleClick,
       role: "button",
       "aria-pressed": selected,

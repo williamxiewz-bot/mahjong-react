@@ -23,7 +23,7 @@ const Tile = memo(function Tile({ tile, selected = false, onClick, faceDown = fa
   return (
     <div 
       className={tileClass}
-      data-suit={tile?.suit}
+      data-suit={tile?.suit?.toString()}
       onClick={handleClick}
       role="button"
       aria-pressed={selected}

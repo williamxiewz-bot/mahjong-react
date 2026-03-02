@@ -21,26 +21,26 @@
 
 /* 万子 - 红色系 */
 .tile[data-suit="1"] {
-  background: linear-gradient(145deg, #fff5f5 0%, #ffe0e0 100%);
-  border-color: #e8b4b4;
+  background: linear-gradient(145deg, #ffebee 0%, #ffcdd2 100%);
+  border-color: #e57373;
 }
 
 /* 筒子 - 蓝色系 */
 .tile[data-suit="2"] {
-  background: linear-gradient(145deg, #f0f8ff 0%, #d6eaff 100%);
-  border-color: #b4d4e8;
+  background: linear-gradient(145deg, #e3f2fd 0%, #bbdefb 100%);
+  border-color: #64b5f6;
 }
 
 /* 条子 - 绿色系 */
 .tile[data-suit="3"] {
-  background: linear-gradient(145deg, #f0fff0 0%, #d4ead4 100%);
-  border-color: #b4e8b4;
+  background: linear-gradient(145deg, #e8f5e9 0%, #c8e6c9 100%);
+  border-color: #81c784;
 }
 
 /* 字牌 - 金色系 */
 .tile[data-suit="4"] {
-  background: linear-gradient(145deg, #fffaf0 0%, #ffe8c8 100%);
-  border-color: #e8d4b4;
+  background: linear-gradient(145deg, #fff8e1 0%, #ffecb3 100%);
+  border-color: #ffb74d;
 }
 
 .tile::before {
