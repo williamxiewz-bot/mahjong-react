@@ -12874,6 +12874,7 @@ function App() {
   const [hasDrawn, setHasDrawn] = reactExports.useState(false);
   const [selectedTile, setSelectedTile] = reactExports.useState(null);
   const [lastDiscarded, setLastDiscarded] = reactExports.useState(null);
+  const [lastDiscardedBy, setLastDiscardedBy] = reactExports.useState(-1);
   const [gameStarted, setGameStarted] = reactExports.useState(false);
   const [message, setMessage] = reactExports.useState("");
   const [aiHands, setAiHands] = reactExports.useState([[], [], []]);
@@ -12937,6 +12938,7 @@ function App() {
     setPlayerHand(newHand);
     setDiscardedTiles((prev) => [...prev, tile]);
     setLastDiscarded(tile);
+    setLastDiscardedBy(0);
     setSelectedTile(null);
     setPlayerLastDrawn(null);
     setHasDrawn(false);
@@ -13090,6 +13092,7 @@ function App() {
     });
     setDiscardedTiles((prev) => [...prev, discardTile2]);
     setLastDiscarded(discardTile2);
+    setLastDiscardedBy(aiIndex);
     const nextPlayer = (aiIndex + 1) % 4;
     if (nextPlayer === 0) {
       setCurrentPlayer(0);
@@ -13109,9 +13112,9 @@ function App() {
     return canGang(playerHand, playerLastDrawn);
   }, [playerLastDrawn, playerHand]);
   const canChiResult = reactExports.useMemo(() => {
-    if (!lastDiscarded) return false;
+    if (!lastDiscarded || lastDiscardedBy !== 3) return false;
     return canChi(playerHand, lastDiscarded);
-  }, [lastDiscarded, playerHand]);
+  }, [lastDiscarded, lastDiscardedBy, playerHand]);
   const canAction = reactExports.useMemo(() => canHu || canPengResult || canGangResult || canChiResult, [canHu, canPengResult, canGangResult, canChiResult]);
   reactExports.useEffect(() => {
     if (!gameStarted || !isPlayerTurn) return;

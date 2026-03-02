@@ -42,6 +42,8 @@ function App() {
   // 选中牌
   const [selectedTile, setSelectedTile] = useState<Tile | null>(null);
   const [lastDiscarded, setLastDiscarded] = useState<Tile | null>(null);
+  // lastDiscardedBy: 0=玩家, 1=下家AI, 2=对家AI, 3=上家AI
+  const [lastDiscardedBy, setLastDiscardedBy] = useState<number>(-1);
   
   const [gameStarted, setGameStarted] = useState(false);
   const [message, setMessage] = useState('');
@@ -125,6 +127,7 @@ function App() {
     setPlayerHand(newHand);
     setDiscardedTiles(prev => [...prev, tile]);
     setLastDiscarded(tile);
+    setLastDiscardedBy(0); // 玩家打的牌
     setSelectedTile(null);
     setPlayerLastDrawn(null);
     setHasDrawn(false);
@@ -324,6 +327,7 @@ function App() {
     
     setDiscardedTiles(prev => [...prev, discardTile]);
     setLastDiscarded(discardTile);
+    setLastDiscardedBy(aiIndex); // 记录是谁打的牌
     
     const nextPlayer = (aiIndex + 1) % 4;
     
@@ -347,9 +351,10 @@ function App() {
     return canGang(playerHand, playerLastDrawn);
   }, [playerLastDrawn, playerHand]);
   const canChiResult = useMemo(() => {
-    if (!lastDiscarded) return false;
+    // 吃牌只能在"上家"（位置3）打牌后才能吃
+    if (!lastDiscarded || lastDiscardedBy !== 3) return false;
     return canChi(playerHand, lastDiscarded);
-  }, [lastDiscarded, playerHand]);
+  }, [lastDiscarded, lastDiscardedBy, playerHand]);
   
   // 是否可以行动（有碰/吃/杠/胡的选择）
   const canAction = useMemo(() => canHu || canPengResult || canGangResult || canChiResult, [canHu, canPengResult, canGangResult, canChiResult]);
