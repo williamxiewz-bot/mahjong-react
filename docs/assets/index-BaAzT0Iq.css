@@ -612,13 +612,13 @@
   }
 }
 .action-buttons {
-  position: absolute;
-  bottom: 140px;
+  position: fixed;
+  bottom: 180px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
   gap: 14px;
-  z-index: 100;
+  z-index: 200;
   flex-wrap: wrap;
   justify-content: center;
   max-width: 90%;
@@ -967,12 +967,12 @@ html, body {
   left: 0;
   right: 0;
   background: linear-gradient(to top, 
-    rgba(0, 0, 0, 0.75) 0%, 
-    rgba(0, 0, 0, 0.4) 40%,
+    rgba(0, 0, 0, 0.5) 0%, 
+    rgba(0, 0, 0, 0.2) 30%,
     transparent 100%
   );
   padding: 1.5rem 1rem calc(1.5rem + var(--sab, 0px));
-  z-index: 100;
+  z-index: 50;
 }
 
 .loading-overlay {
