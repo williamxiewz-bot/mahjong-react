@@ -12746,17 +12746,17 @@ const PlayerHand = reactExports.memo(function PlayerHand2({
 });
 const Opponents = reactExports.memo(function Opponents2({ opponents }) {
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "opponents", children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "opponent top", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "opponent-name", children: opponents.top?.name }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "opponent-hand", children: Array.from({ length: opponents.top?.handCount || 13 }).map((_, i) => /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "opponent-tile back" }, i)) })
-    ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "opponent left", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "opponent top-left", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "opponent-name", children: opponents.left?.name }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "opponent-hand vertical", children: Array.from({ length: opponents.left?.handCount || 13 }).map((_, i) => /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "opponent-tile back" }, i)) })
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "opponent-hand horizontal", children: Array.from({ length: opponents.left?.handCount || 13 }).map((_, i) => /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "opponent-tile back" }, i)) })
     ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "opponent right", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "opponent top", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "opponent-name", children: opponents.opposite?.name }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "opponent-hand horizontal", children: Array.from({ length: opponents.opposite?.handCount || 13 }).map((_, i) => /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "opponent-tile back" }, i)) })
+    ] }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "opponent top-right", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "opponent-name", children: opponents.right?.name }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "opponent-hand vertical", children: Array.from({ length: opponents.right?.handCount || 13 }).map((_, i) => /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "opponent-tile back" }, i)) })
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "opponent-hand horizontal", children: Array.from({ length: opponents.right?.handCount || 13 }).map((_, i) => /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "opponent-tile back" }, i)) })
     ] })
   ] });
 });
@@ -12845,114 +12845,119 @@ function App() {
   const [isLoading, setIsLoading] = reactExports.useState(false);
   const [tiles, setTiles] = reactExports.useState([]);
   const [playerHand, setPlayerHand] = reactExports.useState([]);
+  const [playerLastDrawn, setPlayerLastDrawn] = reactExports.useState(null);
+  const [playerPengs, setPlayerPengs] = reactExports.useState([]);
+  const [playerGangs, setPlayerGangs] = reactExports.useState([]);
+  const [playerChis, setPlayerChis] = reactExports.useState([]);
   const [discardedTiles, setDiscardedTiles] = reactExports.useState([]);
-  const [selectedTile, setSelectedTile] = reactExports.useState(null);
-  const [lastDrawn, setLastDrawn] = reactExports.useState(null);
-  const [lastDiscarded, setLastDiscarded] = reactExports.useState(null);
   const [currentPlayer, setCurrentPlayer] = reactExports.useState(0);
   const [hasDrawn, setHasDrawn] = reactExports.useState(false);
-  const [pengs, setPengs] = reactExports.useState([]);
-  const [gangs, setGangs] = reactExports.useState([]);
-  const [chis, setChis] = reactExports.useState([]);
+  const [selectedTile, setSelectedTile] = reactExports.useState(null);
+  const [lastDiscarded, setLastDiscarded] = reactExports.useState(null);
   const [gameStarted, setGameStarted] = reactExports.useState(false);
   const [message, setMessage] = reactExports.useState("");
-  const [aiHand, setAiHand] = reactExports.useState([]);
+  const [aiHands, setAiHands] = reactExports.useState([[], [], []]);
+  const [aiLastDrawn, setAiLastDrawn] = reactExports.useState([null, null, null]);
+  const [aiPengs, setAiPengs] = reactExports.useState([[], [], []]);
+  const [aiGangs, setAiGangs] = reactExports.useState([[], [], []]);
+  const isPlayerTurn = currentPlayer === 0;
+  const aiTimerRef = reactExports.useRef(null);
   const startGame = reactExports.useCallback(() => {
     setIsLoading(true);
+    if (aiTimerRef.current) {
+      clearTimeout(aiTimerRef.current);
+    }
     setTimeout(() => {
       const allTiles = shuffleTiles(createTiles());
       setTiles(allTiles);
-      const playerTiles = sortHand(allTiles.slice(0, 13));
+      const playerTiles = sortHand(allTiles.slice(14, 27));
       setPlayerHand(playerTiles);
-      setLastDrawn(allTiles[13]);
-      setAiHand(allTiles.slice(14, 27));
+      setPlayerLastDrawn(allTiles[27]);
+      setAiHands([
+        sortHand(allTiles.slice(0, 13)),
+        // 下家AI
+        sortHand(allTiles.slice(40, 53)),
+        // 对家AI
+        sortHand(allTiles.slice(54, 67))
+        // 上家AI
+      ]);
+      setAiLastDrawn([allTiles[13], allTiles[39], allTiles[53]]);
       setDiscardedTiles([]);
       setSelectedTile(null);
       setLastDiscarded(null);
       setCurrentPlayer(0);
       setHasDrawn(true);
-      setPengs([]);
-      setGangs([]);
-      setChis([]);
+      setPlayerPengs([]);
+      setPlayerGangs([]);
+      setPlayerChis([]);
+      setAiPengs([[], [], []]);
+      setAiGangs([[], [], []]);
       setGameStarted(true);
-      setMessage("请选择要打出的牌");
+      setMessage("游戏开始！请选择要打出的牌");
       setIsLoading(false);
     }, 300);
   }, []);
   const drawTile = reactExports.useCallback(() => {
-    if (currentPlayer !== 0 || hasDrawn) return;
+    if (!isPlayerTurn || hasDrawn) return;
+    if (tiles.length === 0) {
+      setMessage("流局！");
+      setGameStarted(false);
+      return;
+    }
     const newTiles = [...tiles];
     const drawnTile = newTiles.shift();
     if (!drawnTile) return;
     setTiles(newTiles);
     setPlayerHand((prev) => sortHand([...prev, drawnTile]));
-    setLastDrawn(drawnTile);
+    setPlayerLastDrawn(drawnTile);
     setHasDrawn(true);
     const newHand = [...playerHand, drawnTile];
     if (checkHu(newHand)) {
-      setMessage("可以胡牌！");
+      setMessage("🎉 可以胡牌！");
     } else {
       setMessage("请选择要打出的牌");
     }
-  }, [currentPlayer, hasDrawn, tiles, playerHand]);
+  }, [isPlayerTurn, hasDrawn, tiles, playerHand]);
   const discardTile = reactExports.useCallback((tile) => {
-    if (currentPlayer !== 0 || !hasDrawn) return;
+    if (!isPlayerTurn || !hasDrawn) return;
     const newHand = playerHand.filter((t) => t.id !== tile.id);
     setPlayerHand(newHand);
     setDiscardedTiles((prev) => [...prev, tile]);
     setLastDiscarded(tile);
     setSelectedTile(null);
-    setLastDrawn(null);
+    setPlayerLastDrawn(null);
     setHasDrawn(false);
     setCurrentPlayer(1);
     setMessage("下家摸牌中...");
-    setTimeout(() => {
-      aiPlay();
-    }, 1e3);
-  }, [currentPlayer, hasDrawn, playerHand]);
-  const handleTileClick = reactExports.useCallback((tile) => {
-    if (currentPlayer === 0 && hasDrawn) {
-      setSelectedTile(tile);
-    }
-  }, [currentPlayer, hasDrawn]);
-  const handleDiscard = reactExports.useCallback(() => {
-    if (selectedTile) {
-      discardTile(selectedTile);
-    }
-  }, [selectedTile, discardTile]);
-  const handleHu = reactExports.useCallback(() => {
-    if (checkHu(playerHand)) {
-      setMessage("🎉 胡牌了！恭喜！");
-      setGameStarted(false);
-    }
-  }, [playerHand]);
+    aiTimerRef.current = setTimeout(() => {
+      aiPlay(1);
+    }, 800);
+  }, [isPlayerTurn, hasDrawn, playerHand]);
   const handlePeng = reactExports.useCallback(() => {
     if (!lastDiscarded || !canPeng(playerHand, lastDiscarded)) return;
     const matchingTiles = playerHand.filter((t) => t.suit === lastDiscarded.suit && t.num === lastDiscarded.num);
     if (matchingTiles.length < 2) return;
-    const pengTiles = [
-      lastDiscarded,
-      matchingTiles[0],
-      matchingTiles[1]
-    ];
+    const pengTiles = [lastDiscarded, matchingTiles[0], matchingTiles[1]];
     const newHand = playerHand.filter((t) => t.id !== matchingTiles[0].id && t.id !== matchingTiles[1].id);
     setPlayerHand(newHand);
-    setPengs((prev) => [...prev, pengTiles]);
+    setPlayerPengs((prev) => [...prev, pengTiles]);
     setDiscardedTiles((prev) => prev.filter((t) => t.id !== lastDiscarded.id));
     setLastDiscarded(null);
     setHasDrawn(true);
     setMessage("碰了！请打出一张牌");
   }, [lastDiscarded, playerHand]);
   const handleGang = reactExports.useCallback(() => {
-    if (!lastDrawn || !canGang(playerHand, lastDrawn)) return;
-    const gangTiles = playerHand.filter((t) => t.suit === lastDrawn.suit && t.num === lastDrawn.num);
+    if (!playerLastDrawn || !canGang(playerHand, playerLastDrawn)) return;
+    const gangTiles = playerHand.filter((t) => t.suit === playerLastDrawn.suit && t.num === playerLastDrawn.num);
     setPlayerHand((prev) => prev.filter((t) => t.id !== gangTiles[0].id && t.id !== gangTiles[1].id && t.id !== gangTiles[2].id));
-    setGangs((prev) => [...prev, [...gangTiles, lastDrawn]]);
-    setLastDrawn(null);
+    setPlayerGangs((prev) => [...prev, [...gangTiles, playerLastDrawn]]);
+    setPlayerLastDrawn(null);
     setHasDrawn(false);
     setMessage("杠了！继续摸牌");
-    drawTile();
-  }, [lastDrawn, playerHand, drawTile]);
+    aiTimerRef.current = setTimeout(() => {
+      drawTile();
+    }, 500);
+  }, [playerLastDrawn, playerHand, drawTile]);
   const handleChi = reactExports.useCallback(() => {
     if (!lastDiscarded || !canChi(playerHand, lastDiscarded)) return;
     const options = findChiOptions(playerHand, lastDiscarded);
@@ -12960,59 +12965,124 @@ function App() {
       setMessage("吃牌选项: " + options.length + " 种");
     }
   }, [lastDiscarded, playerHand]);
-  const aiPlay = reactExports.useCallback(() => {
-    const newTiles = [...tiles];
-    if (newTiles.length === 0) {
-      setMessage("流局！");
+  const handleHu = reactExports.useCallback(() => {
+    if (checkHu(playerHand)) {
+      setMessage("🎉 胡牌了！恭喜！");
       setGameStarted(false);
-      return;
     }
-    const drawnTile = newTiles.shift();
-    if (!drawnTile) return;
-    setTiles(newTiles);
-    setAiHand((prev) => {
-      const updated = [...prev, drawnTile];
-      const discardIndex = Math.floor(Math.random() * updated.length);
-      const aiDiscard = updated[discardIndex];
-      setDiscardedTiles((prevTiles) => [...prevTiles, aiDiscard]);
-      setLastDiscarded(aiDiscard);
-      return updated.filter((_, i) => i !== discardIndex);
-    });
-    setCurrentPlayer(0);
-    setMessage("轮到你行动了");
-  }, [tiles]);
+  }, [playerHand]);
   const handlePass = reactExports.useCallback(() => {
     setSelectedTile(null);
     setCurrentPlayer(1);
     setMessage("下家摸牌中...");
+    aiTimerRef.current = setTimeout(() => {
+      aiPlay(1);
+    }, 800);
+  }, []);
+  const aiPlay = reactExports.useCallback((aiIndex) => {
+    if (!gameStarted) return;
+    if (tiles.length === 0) {
+      setMessage("流局！");
+      setGameStarted(false);
+      return;
+    }
+    const newTiles = [...tiles];
+    const drawnTile = newTiles.shift();
+    if (!drawnTile) return;
+    setTiles(newTiles);
+    setAiHands((prev) => {
+      const updated = [...prev];
+      updated[aiIndex] = sortHand([...updated[aiIndex], drawnTile]);
+      return updated;
+    });
+    setAiLastDrawn((prev) => {
+      const updated = [...prev];
+      updated[aiIndex] = drawnTile;
+      return updated;
+    });
+    const currentAiHand = aiHands[aiIndex] ? sortHand([...aiHands[aiIndex], drawnTile]) : [drawnTile];
+    if (checkHu(currentAiHand)) {
+      setMessage(`AI${aiIndex + 1} 胡牌了！`);
+      setGameStarted(false);
+      return;
+    }
+    if (canGang(currentAiHand, drawnTile)) {
+      setAiGangs((prev) => {
+        const updated = [...prev];
+        const gangTiles = currentAiHand.filter((t) => t.suit === drawnTile.suit && t.num === drawnTile.num);
+        updated[aiIndex] = [...updated[aiIndex], [...gangTiles, drawnTile]];
+        return updated;
+      });
+      setAiHands((prev) => {
+        const updated = [...prev];
+        const gangTiles = updated[aiIndex].filter((t) => t.suit === drawnTile.suit && t.num === drawnTile.num);
+        updated[aiIndex] = updated[aiIndex].filter((t) => t.id !== gangTiles[0].id && t.id !== gangTiles[1].id && t.id !== gangTiles[2].id);
+        return updated;
+      });
+      setMessage(`AI${aiIndex + 1} 杠牌了！`);
+      aiTimerRef.current = setTimeout(() => {
+        const nextPlayer = (aiIndex + 1) % 4;
+        if (nextPlayer === 0) {
+          setCurrentPlayer(0);
+          setMessage("轮到你了！请摸牌");
+          setHasDrawn(false);
+        } else {
+          setCurrentPlayer(nextPlayer);
+          aiTimerRef.current = setTimeout(() => {
+            aiPlay(nextPlayer);
+          }, 800);
+        }
+      }, 1e3);
+      return;
+    }
     setTimeout(() => {
-      aiPlay();
-    }, 1e3);
-  }, [aiPlay]);
-  const canHu = reactExports.useMemo(() => checkHu(playerHand), [playerHand]);
-  const canPengResult = reactExports.useMemo(() => lastDiscarded && canPeng(playerHand, lastDiscarded), [lastDiscarded, playerHand]);
-  const canGangResult = reactExports.useMemo(() => lastDrawn && canGang(playerHand, lastDrawn), [lastDrawn, playerHand]);
-  const canChiResult = reactExports.useMemo(() => lastDiscarded && canChi(playerHand, lastDiscarded), [lastDiscarded, playerHand]);
-  reactExports.useEffect(() => {
-    if (selectedTile && hasDrawn && currentPlayer === 0) {
-      handleDiscard();
+      setAiHands((prev) => {
+        const updated = [...prev];
+        const discardIndex = Math.floor(Math.random() * updated[aiIndex].length);
+        const aiDiscard = updated[aiIndex][discardIndex];
+        setDiscardedTiles((prevTiles) => [...prevTiles, aiDiscard]);
+        setLastDiscarded(aiDiscard);
+        updated[aiIndex] = updated[aiIndex].filter((_, i) => i !== discardIndex);
+        checkAiActions(aiIndex, aiDiscard);
+        return updated;
+      });
+      setAiLastDrawn((prev) => {
+        const updated = [...prev];
+        updated[aiIndex] = null;
+        return updated;
+      });
+    }, 500);
+  }, [tiles, gameStarted, aiHands]);
+  const checkAiActions = reactExports.useCallback((fromPlayer, discardedTile) => {
+    const nextPlayer = (fromPlayer + 1) % 4;
+    if (nextPlayer === 0) {
+      setCurrentPlayer(0);
+      setHasDrawn(true);
+      setMessage("轮到你行动了");
+    } else {
+      setCurrentPlayer(nextPlayer);
+      aiTimerRef.current = setTimeout(() => {
+        aiPlay(nextPlayer);
+      }, 800);
     }
-  }, [selectedTile, hasDrawn, currentPlayer, handleDiscard]);
-  reactExports.useEffect(() => {
-    if (gameStarted && currentPlayer === 0 && !hasDrawn) {
-      const timer = setTimeout(() => {
-        drawTile();
-      }, 600);
-      return () => clearTimeout(timer);
+  }, []);
+  const handleTileClick = reactExports.useCallback((tile) => {
+    if (isPlayerTurn && hasDrawn) {
+      setSelectedTile(tile);
     }
-  }, [gameStarted, currentPlayer, hasDrawn, drawTile]);
+  }, [isPlayerTurn, hasDrawn]);
+  reactExports.useEffect(() => {
+    if (selectedTile && hasDrawn && isPlayerTurn) {
+      discardTile(selectedTile);
+    }
+  }, [selectedTile, hasDrawn, isPlayerTurn, discardTile]);
   reactExports.useEffect(() => {
     const handleKeyDown = (e) => {
-      if (!gameStarted || currentPlayer !== 0) return;
+      if (!gameStarted || !isPlayerTurn) return;
       switch (e.key) {
         case "h":
         case "H":
-          if (canHu) handleHu();
+          if (checkHu(playerHand)) handleHu();
           break;
         case "p":
         case "P":
@@ -13040,22 +13110,29 @@ function App() {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [gameStarted, currentPlayer, canHu, canPengResult, canGangResult, canChiResult, hasDrawn, handleHu, handlePeng, handleGang, handleChi, handlePass, drawTile]);
+  }, [gameStarted, isPlayerTurn, canHu, canPengResult, canGangResult, canChiResult, hasDrawn, handleHu, handlePeng, handleGang, handleChi, handlePass, drawTile, playerHand]);
   const opponents = reactExports.useMemo(() => ({
-    top: { name: "上家", handCount: 13 },
-    left: { name: "对家", handCount: 13 },
-    right: { name: "下家", handCount: 13 }
+    left: { name: "上家 AI", handCount: 13, position: "left" },
+    opposite: { name: "对家 AI", handCount: 13, position: "opposite" },
+    right: { name: "下家 AI", handCount: 13, position: "right" }
   }), []);
+  const canHu = reactExports.useMemo(() => checkHu(playerHand), [playerHand]);
+  const canPengResult = reactExports.useMemo(() => lastDiscarded && canPeng(playerHand, lastDiscarded), [lastDiscarded, playerHand]);
+  const canGangResult = reactExports.useMemo(() => playerLastDrawn && canGang(playerHand, playerLastDrawn), [playerLastDrawn, playerHand]);
+  const canChiResult = reactExports.useMemo(() => lastDiscarded && canChi(playerHand, lastDiscarded), [lastDiscarded, playerHand]);
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mahjong-game", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "game-header", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("h1", { children: "🀄 麻将游戏 🀄" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("h1", { children: "🀄 广东麻将 🀄" }),
       message && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "message", role: "status", "aria-live": "polite", children: message })
     ] }),
     isLoading && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "loading-overlay", "aria-live": "polite", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "loading-spinner" }),
       /* @__PURE__ */ jsxRuntimeExports.jsx("p", { children: "正在加载游戏..." })
     ] }),
-    !gameStarted && !isLoading && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "start-screen", children: /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "start-btn", onClick: startGame, "aria-label": "开始游戏", children: "开始游戏" }) }),
+    !gameStarted && !isLoading && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "start-screen", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "start-btn", onClick: startGame, "aria-label": "开始游戏", children: "开始游戏" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "game-info", children: "你将对战 3 个 AI 对手" })
+    ] }),
     gameStarted && !isLoading && /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx(Opponents, { opponents }),
       /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -13071,10 +13148,10 @@ function App() {
           hand: playerHand,
           selectedTile,
           onTileClick: handleTileClick,
-          lastDrawn,
-          pengs,
-          gangs,
-          chis
+          lastDrawn: playerLastDrawn,
+          pengs: playerPengs,
+          gangs: playerGangs,
+          chis: playerChis
         }
       ) }),
       /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -13090,7 +13167,7 @@ function App() {
           canPeng: canPengResult,
           canGang: canGangResult,
           canChi: canChiResult,
-          isMyTurn: currentPlayer === 0,
+          isMyTurn: isPlayerTurn,
           hasDrawn
         }
       )

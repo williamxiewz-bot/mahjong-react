@@ -1,9 +1,10 @@
-.opponents-container {
+/* 对手区域 */
+.opponents {
   position: absolute;
-  top: 0;
+  top: 80px;
   left: 0;
   right: 0;
-  bottom: 0;
+  bottom: 200px;
   pointer-events: none;
 }
 
@@ -11,52 +12,36 @@
   position: absolute;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
 }
 
-.opponent-top {
-  top: 12px;
+.opponent.top {
+  top: 10px;
   left: 50%;
   transform: translateX(-50%);
-  flex-direction: row;
-}
-
-.opponent-top .opponent-hand {
-  flex-direction: row;
-}
-
-.opponent-left {
-  top: 50%;
-  left: 12px;
-  transform: translateY(-50%);
-  flex-direction: row;
-}
-
-.opponent-right {
-  top: 50%;
-  right: 12px;
-  transform: translateY(-50%);
-  flex-direction: row-reverse;
-}
-
-.opponent-info {
-  display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 4px;
+}
+
+.opponent.top-left {
+  top: 10px;
+  left: 10px;
+  flex-direction: column;
+}
+
+.opponent.top-right {
+  top: 10px;
+  right: 10px;
+  flex-direction: column;
 }
 
 .opponent-name {
-  font-size: 15px;
-  color: #ffd700;
-  text-shadow: 1px 1px 3px #000;
-  font-weight: bold;
-}
-
-.opponent-count {
-  font-size: 13px;
-  color: #ccc;
-  text-shadow: 1px 1px 2px #000;
+  font-size: 14px;
+  color: #86efac;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.5);
+  padding: 4px 12px;
+  border-radius: 12px;
+  margin-bottom: 8px;
 }
 
 .opponent-hand {
@@ -64,97 +49,31 @@
   gap: 3px;
 }
 
+.opponent-hand.horizontal {
+  flex-direction: row;
+}
+
 .opponent-tile {
-  width: 28px;
-  height: 38px;
+  width: 24px;
+  height: 32px;
   background: linear-gradient(145deg, #5a7a50 0%, #3d5636 100%);
-  border-radius: 4px;
-  box-shadow: 
-    0 3px 6px rgba(0, 0, 0, 0.5),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  color: transparent;
+  border-radius: 3px;
   border: 1px solid #4a6741;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-.opponent-tile.just-drawn {
-  border: 2px solid #ffd700;
-  animation: drawPulse 0.5s ease;
-}
-
-@keyframes drawPulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.25); }
-  100% { transform: scale(1); }
-}
-
-@media (min-width: 1200px) {
-  .opponent-tile {
-    width: 34px;
-    height: 46px;
-    font-size: 22px;
-  }
-  
-  .opponent-name {
-    font-size: 17px;
-  }
-  
-  .opponent-info {
-    gap: 6px;
-  }
+.opponent-tile.back {
+  background: linear-gradient(145deg, #5a7a50 0%, #3d5636 100%);
 }
 
 @media (max-width: 768px) {
   .opponent-tile {
-    width: 22px;
-    height: 30px;
-    font-size: 14px;
-  }
-  
-  .opponent-name {
-    font-size: 13px;
-  }
-  
-  .opponent-count {
-    font-size: 11px;
-  }
-  
-  .opponent-info {
-    gap: 2px;
-  }
-}
-
-@media (max-width: 480px) {
-  .opponent-tile {
     width: 18px;
-    height: 25px;
-    font-size: 12px;
+    height: 24px;
   }
   
   .opponent-name {
-    font-size: 11px;
-  }
-  
-  .opponent-count {
-    font-size: 10px;
-  }
-  
-  .opponent {
-    gap: 6px;
-  }
-  
-  .opponent-top {
-    top: 8px;
-  }
-  
-  .opponent-left {
-    left: 8px;
-  }
-  
-  .opponent-right {
-    right: 8px;
+    font-size: 12px;
+    padding: 2px 8px;
   }
 }
