@@ -6,7 +6,7 @@ export default defineConfig({
   base: './',
   build: {
     target: 'esnext',
-    minify: 'esbuild',
+    minify: 'terser',
     outDir: 'docs',
     rollupOptions: {
       output: {
