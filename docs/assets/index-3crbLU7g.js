@@ -13002,18 +13002,20 @@ function App() {
     }, 500);
   }, [gameStarted, tiles]);
   const aiDiscard = reactExports.useCallback((aiIndex, drawnTile) => {
-    const currentHand = aiHands[aiIndex] || [];
-    if (checkHu([...currentHand, drawnTile])) {
+    const currentHand = aiHands[aiIndex] ? [...aiHands[aiIndex]] : [];
+    if (currentHand.length > 0 && checkHu([...currentHand, drawnTile])) {
       setMessage(`AI${aiIndex + 1} 胡牌了！`);
       setGameStarted(false);
       clearTimer();
       return;
     }
     const discardIndex = Math.floor(Math.random() * currentHand.length);
-    const aiDiscard2 = currentHand[discardIndex];
+    const discardTile2 = currentHand[discardIndex];
     setAiHands((prev) => {
       const updated = [...prev];
-      updated[aiIndex] = currentHand.filter((_, i) => i !== discardIndex);
+      if (updated[aiIndex]) {
+        updated[aiIndex] = currentHand.filter((_, i) => i !== discardIndex);
+      }
       return updated;
     });
     setAiLastDrawn((prev) => {
@@ -13021,8 +13023,8 @@ function App() {
       updated[aiIndex] = null;
       return updated;
     });
-    setDiscardedTiles((prev) => [...prev, aiDiscard2]);
-    setLastDiscarded(aiDiscard2);
+    setDiscardedTiles((prev) => [...prev, discardTile2]);
+    setLastDiscarded(discardTile2);
     const nextPlayer = (aiIndex + 1) % 4;
     if (nextPlayer === 0) {
       setCurrentPlayer(0);

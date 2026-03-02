@@ -247,10 +247,10 @@ function App() {
   // AI打牌
   const aiDiscard = useCallback((aiIndex: number, drawnTile: Tile) => {
     // 获取当前手牌
-    const currentHand = aiHands[aiIndex] || [];
+    const currentHand = aiHands[aiIndex] ? [...aiHands[aiIndex]] : [];
     
     // 检查胡牌
-    if (checkHu([...currentHand, drawnTile])) {
+    if (currentHand.length > 0 && checkHu([...currentHand, drawnTile])) {
       setMessage(`AI${aiIndex + 1} 胡牌了！`);
       setGameStarted(false);
       clearTimer();
@@ -259,12 +259,14 @@ function App() {
     
     // 随机打一张牌
     const discardIndex = Math.floor(Math.random() * currentHand.length);
-    const aiDiscard = currentHand[discardIndex];
+    const discardTile = currentHand[discardIndex];
     
     // 更新手牌
     setAiHands(prev => {
       const updated = [...prev];
-      updated[aiIndex] = currentHand.filter((_, i) => i !== discardIndex);
+      if (updated[aiIndex]) {
+        updated[aiIndex] = currentHand.filter((_, i) => i !== discardIndex);
+      }
       return updated;
     });
     
@@ -274,18 +276,16 @@ function App() {
       return updated;
     });
     
-    setDiscardedTiles(prev => [...prev, aiDiscard]);
-    setLastDiscarded(aiDiscard);
+    setDiscardedTiles(prev => [...prev, discardTile]);
+    setLastDiscarded(discardTile);
     
     // 下一个玩家
     const nextPlayer = (aiIndex + 1) % 4;
     
     if (nextPlayer === 0) {
-      // 回到玩家
       setCurrentPlayer(0);
       setMessage('轮到你摸牌了');
     } else {
-      // 下一个AI
       setCurrentPlayer(nextPlayer);
       timerRef.current = setTimeout(() => aiPlay(nextPlayer), 800);
     }
