@@ -3,15 +3,14 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
-  base: '/mahjong-react/',
+  base: './',
   build: {
-    target: 'es2020',
+    target: 'esnext',
     minify: 'esbuild',
+    outDir: 'docs',
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom'],
-        },
+        manualChunks: undefined,
       },
     },
   },
