@@ -5,16 +5,27 @@ export default defineConfig({
   plugins: [react()],
   base: './',
   build: {
-    target: 'esnext',
-    minify: 'terser',
+    target: 'es2020',
+    minify: 'esbuild',
     outDir: 'docs',
+    sourcemap: false,
+    chunkSizeWarningLimit: 1000,
     rollupOptions: {
       output: {
-        manualChunks: undefined,
+        manualChunks: (id) => {
+          if (id.includes('node_modules')) {
+            if (id.includes('react-dom')) {
+              return 'react-dom'
+            }
+            if (id.includes('react')) {
+              return 'react'
+            }
+          }
+        },
       },
     },
   },
   optimizeDeps: {
-    include: ['react', 'react-dom'],
+    include: [],
   },
 })
