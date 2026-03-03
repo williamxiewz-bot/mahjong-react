@@ -1,0 +1,115 @@
+.player-hand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.hand-tiles {
+  display: flex;
+  gap: 3px;
+  flex-wrap: wrap;
+  justify-content: center;
+  padding: 8px 16px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+}
+
+.melds {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.meld {
+  display: flex;
+  gap: 1px;
+}
+
+.meld.peng {
+  border: 2px solid #e57373;
+  border-radius: 6px;
+  padding: 2px;
+  background: rgba(229, 115, 115, 0.15);
+}
+
+.meld.gang {
+  border: 2px solid #ffb74d;
+  border-radius: 6px;
+  padding: 2px;
+  background: rgba(255, 183, 77, 0.15);
+}
+
+.meld.chi {
+  border: 2px solid #81c784;
+  border-radius: 6px;
+  padding: 2px;
+  background: rgba(129, 199, 132, 0.15);
+}
+
+.chi-options-container {
+  position: fixed;
+  bottom: 200px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  padding: 12px 20px;
+  border-radius: 12px;
+  z-index: 100;
+  text-align: center;
+}
+
+.chi-options-container p {
+  color: #86efac;
+  margin: 0 0 8px 0;
+  font-size: 14px;
+}
+
+.chi-options {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.chi-option-btn {
+  padding: 8px 16px;
+  background: linear-gradient(145deg, #22c55e, #16a34a);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.chi-option-btn:hover {
+  transform: scale(1.05);
+}
+
+.chi-option-btn.selected {
+  background: linear-gradient(145deg, #4ade80, #22c55e);
+  box-shadow: 0 0 10px rgba(74, 222, 128, 0.5);
+}
+
+@media (max-width: 768px) {
+  .hand-tiles {
+    gap: 2px;
+    padding: 6px 10px;
+  }
+  
+  .melds {
+    gap: 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  .hand-tiles {
+    gap: 1px;
+    padding: 4px 8px;
+  }
+  
+  .melds {
+    gap: 4px;
+  }
+}

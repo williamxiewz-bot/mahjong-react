@@ -1,0 +1,210 @@
+.tile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 64px;
+  background: linear-gradient(145deg, #faf8f5 0%, #f0ede8 100%);
+  border-radius: 6px;
+  box-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.2),
+    0 4px 8px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+  font-size: 32px;
+  color: #1a1a1a;
+  transition: all 0.15s ease;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+          user-select: none;
+  border: 1px solid #ccc5ba;
+  position: relative;
+}
+
+/* 万子 - 红色系 */
+.tile[data-suit="1"] {
+  background: linear-gradient(145deg, #ffebee 0%, #ffcdd2 100%);
+  border-color: #e57373;
+}
+
+/* 筒子 - 蓝色系 */
+.tile[data-suit="2"] {
+  background: linear-gradient(145deg, #e3f2fd 0%, #bbdefb 100%);
+  border-color: #64b5f6;
+}
+
+/* 条子 - 绿色系 */
+.tile[data-suit="3"] {
+  background: linear-gradient(145deg, #e8f5e9 0%, #c8e6c9 100%);
+  border-color: #81c784;
+}
+
+/* 字牌 - 金色系 */
+.tile[data-suit="4"] {
+  background: linear-gradient(145deg, #fff8e1 0%, #ffecb3 100%);
+  border-color: #ffb74d;
+}
+
+.tile::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  right: 2px;
+  height: 10px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.6) 0%, transparent 100%);
+  border-radius: 4px 4px 0 0;
+  pointer-events: none;
+}
+
+.tile::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.06) 100%);
+  border-radius: 0 0 6px 6px;
+  pointer-events: none;
+}
+
+.tile:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 
+    0 6px 12px rgba(0, 0, 0, 0.25),
+    0 10px 20px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.tile.selected {
+  transform: translateY(-12px) scale(1.05);
+  box-shadow: 
+    0 10px 20px rgba(0, 0, 0, 0.3),
+    0 0 0 3px #ff9800,
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+/* 选中状态根据花色调整 */
+.tile.selected[data-suit="1"] {
+  box-shadow: 0 10px 20px rgba(229, 115, 115, 0.4), 0 0 0 3px #f44336;
+}
+
+.tile.selected[data-suit="2"] {
+  box-shadow: 0 10px 20px rgba(100, 181, 246, 0.4), 0 0 0 3px #2196f3;
+}
+
+.tile.selected[data-suit="3"] {
+  box-shadow: 0 10px 20px rgba(129, 199, 132, 0.4), 0 0 0 3px #4caf50;
+}
+
+.tile.selected[data-suit="4"] {
+  box-shadow: 0 10px 20px rgba(255, 183, 77, 0.4), 0 0 0 3px #ff9800;
+}
+
+.tile.face-down {
+  background: linear-gradient(145deg, #5a7a50 0%, #3d5636 100%);
+  border: 1px solid #4a6741;
+  cursor: default;
+}
+
+.tile.face-down::before {
+  background: linear-gradient(180deg, rgba(255,255,255,0.1) 0%, transparent 100%);
+}
+
+.tile.face-down:hover {
+  transform: none;
+  box-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.2),
+    0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.tile.small {
+  width: 32px;
+  height: 42px;
+  font-size: 20px;
+  border-radius: 4px;
+}
+
+.tile.small::before {
+  height: 6px;
+}
+
+.tile.large {
+  width: 56px;
+  height: 74px;
+  font-size: 38px;
+  border-radius: 7px;
+}
+
+.tile.large::before {
+  height: 12px;
+}
+
+/* 碰牌组合样式 */
+.meld {
+  display: flex;
+  gap: 2px;
+}
+
+.meld.peng {
+  border: 2px solid #e57373;
+  border-radius: 6px;
+  padding: 2px;
+  background: rgba(229, 115, 115, 0.15);
+}
+
+.meld.gang {
+  border: 2px solid #ffb74d;
+  border-radius: 6px;
+  padding: 2px;
+  background: rgba(255, 183, 77, 0.15);
+}
+
+.meld.chi {
+  border: 2px solid #81c784;
+  border-radius: 6px;
+  padding: 2px;
+  background: rgba(129, 199, 132, 0.15);
+}
+
+@media (max-width: 768px) {
+  .tile {
+    width: 36px;
+    height: 48px;
+    font-size: 24px;
+  }
+  
+  .tile.small {
+    width: 26px;
+    height: 34px;
+    font-size: 16px;
+  }
+  
+  .tile.large {
+    width: 44px;
+    height: 58px;
+    font-size: 28px;
+  }
+}
+
+@media (max-width: 480px) {
+  .tile {
+    width: 30px;
+    height: 40px;
+    font-size: 20px;
+  }
+  
+  .tile.small {
+    width: 22px;
+    height: 30px;
+    font-size: 14px;
+  }
+  
+  .tile.large {
+    width: 38px;
+    height: 50px;
+    font-size: 22px;
+  }
+}

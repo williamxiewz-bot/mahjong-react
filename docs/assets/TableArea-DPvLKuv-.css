@@ -1,0 +1,165 @@
+.table-area {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 85%;
+  max-width: 800px;
+  height: 320px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.table-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  opacity: 0.25;
+}
+
+.mahjong-logo {
+  font-size: 100px;
+  animation: spin 25s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.dice-area {
+  font-size: 48px;
+}
+
+.discards {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.discard-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+}
+
+.discarded-tile {
+  width: 44px;
+  height: 58px;
+  background: linear-gradient(145deg, #fefefe 0%, #f0ebe0 100%);
+  border-radius: 5px;
+  box-shadow: 
+    0 3px 6px rgba(0, 0, 0, 0.35),
+    inset 0 2px 0 rgba(255, 255, 255, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: 1px solid #d4c8b0;
+}
+
+.discarded-tile:hover {
+  transform: scale(1.12);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.45);
+}
+
+.discarded-tile.last-discarded {
+  background: linear-gradient(145deg, #fff8e0 0%, #ffdd70 100%);
+  box-shadow: 
+    0 0 0 3px #ff9500,
+    0 6px 12px rgba(255, 150, 0, 0.5);
+  animation: lastDiscard 0.5s ease;
+}
+
+@keyframes lastDiscard {
+  0% { transform: scale(1.35); }
+  100% { transform: scale(1); }
+}
+
+.remaining-count {
+  position: absolute;
+  bottom: -35px;
+  font-size: 17px;
+  color: #ffd700;
+  text-shadow: 1px 1px 3px #000;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 6px 16px;
+  border-radius: 15px;
+  -webkit-backdrop-filter: blur(4px);
+          backdrop-filter: blur(4px);
+  border: 1px solid rgba(212, 168, 83, 0.3);
+}
+
+@media (min-width: 1200px) {
+  .table-area {
+    max-width: 900px;
+    height: 360px;
+  }
+  
+  .mahjong-logo {
+    font-size: 120px;
+  }
+  
+  .discarded-tile {
+    width: 52px;
+    height: 70px;
+    font-size: 36px;
+  }
+}
+
+@media (max-width: 768px) {
+  .table-area {
+    width: 92%;
+    height: 260px;
+  }
+  
+  .mahjong-logo {
+    font-size: 70px;
+  }
+  
+  .discarded-tile {
+    width: 36px;
+    height: 48px;
+    font-size: 24px;
+  }
+  
+  .remaining-count {
+    font-size: 14px;
+    bottom: -28px;
+  }
+}
+
+@media (max-width: 480px) {
+  .table-area {
+    height: 220px;
+  }
+  
+  .mahjong-logo {
+    font-size: 55px;
+  }
+  
+  .discarded-tile {
+    width: 30px;
+    height: 40px;
+    font-size: 20px;
+  }
+  
+  .discards {
+    gap: 4px;
+  }
+  
+  .discard-row {
+    gap: 4px;
+  }
+}

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, lazy, Suspense } from 'react';
 import { 
   createTiles, 
   shuffleTiles, 
@@ -10,11 +10,13 @@ import {
   findChiOptions,
   type Tile
 } from './mahjongGame';
-import PlayerHand from './components/PlayerHand';
-import Opponents from './components/Opponents';
-import TableArea from './components/TableArea';
-import ActionButtons from './components/ActionButtons';
 import './App.css';
+
+// 懒加载组件
+const PlayerHand = lazy(() => import('./components/PlayerHand'));
+const Opponents = lazy(() => import('./components/Opponents'));
+const TableArea = lazy(() => import('./components/TableArea'));
+const ActionButtons = lazy(() => import('./components/ActionButtons'));
 
 interface OpponentInfo {
   name: string;
@@ -458,7 +460,7 @@ function App() {
       )}
       
       {gameStarted && !isLoading && (
-        <>
+        <Suspense fallback={<div className="loading">加载中...</div>}>
           <Opponents opponents={opponents} />
           
           <TableArea 
@@ -513,7 +515,7 @@ function App() {
             hasDrawn={hasDrawn}
             canPass={canAction}
           />
-        </>
+        </Suspense>
       )}
     </div>
   );

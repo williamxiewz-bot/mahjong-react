@@ -1,3 +1,4 @@
+const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["./PlayerHand-B_vvjfOn.js","./Tile-CE26e5cE.js","./Tile-ChHb6ET5.css","./PlayerHand-DsnwYqTl.css","./Opponents-BL2X1UdH.js","./Opponents-C6kttqSi.css","./TableArea-C7YIC-yp.js","./TableArea-DPvLKuv-.css","./ActionButtons-C92_y8ee.js","./ActionButtons-IW7w80be.css"])))=>i.map(i=>d[i]);
 (function polyfill() {
   const relList = document.createElement("link").relList;
   if (relList && relList.supports && relList.supports("modulepreload")) return;
@@ -11246,7 +11247,7 @@ function requireReactDomClient_production() {
     r: requestFormReset,
     D: prefetchDNS,
     C: preconnect,
-    L: preload,
+    L: preload2,
     m: preloadModule,
     X: preinitScript,
     S: preinitStyle,
@@ -11278,7 +11279,7 @@ function requireReactDomClient_production() {
     previousDispatcher.C(href, crossOrigin);
     preconnectAs("preconnect", href, crossOrigin);
   }
-  function preload(href, as, options2) {
+  function preload2(href, as, options2) {
     previousDispatcher.L(href, as, options2);
     var ownerDocument = globalDocument;
     if (ownerDocument && href && as) {
@@ -12478,6 +12479,64 @@ function requireClient() {
   return client.exports;
 }
 var clientExports = requireClient();
+const scriptRel = "modulepreload";
+const assetsURL = function(dep, importerUrl) {
+  return new URL(dep, importerUrl).href;
+};
+const seen = {};
+const __vitePreload = function preload(baseModule, deps, importerUrl) {
+  let promise = Promise.resolve();
+  if (deps && deps.length > 0) {
+    let allSettled = function(promises$2) {
+      return Promise.all(promises$2.map((p) => Promise.resolve(p).then((value$1) => ({
+        status: "fulfilled",
+        value: value$1
+      }), (reason) => ({
+        status: "rejected",
+        reason
+      }))));
+    };
+    const links = document.getElementsByTagName("link");
+    const cspNonceMeta = document.querySelector("meta[property=csp-nonce]");
+    const cspNonce = cspNonceMeta?.nonce || cspNonceMeta?.getAttribute("nonce");
+    promise = allSettled(deps.map((dep) => {
+      dep = assetsURL(dep, importerUrl);
+      if (dep in seen) return;
+      seen[dep] = true;
+      const isCss = dep.endsWith(".css");
+      const cssSelector = isCss ? '[rel="stylesheet"]' : "";
+      if (!!importerUrl) for (let i$1 = links.length - 1; i$1 >= 0; i$1--) {
+        const link$1 = links[i$1];
+        if (link$1.href === dep && (!isCss || link$1.rel === "stylesheet")) return;
+      }
+      else if (document.querySelector(`link[href="${dep}"]${cssSelector}`)) return;
+      const link = document.createElement("link");
+      link.rel = isCss ? "stylesheet" : scriptRel;
+      if (!isCss) link.as = "script";
+      link.crossOrigin = "";
+      link.href = dep;
+      if (cspNonce) link.setAttribute("nonce", cspNonce);
+      document.head.appendChild(link);
+      if (isCss) return new Promise((res, rej) => {
+        link.addEventListener("load", res);
+        link.addEventListener("error", () => rej(/* @__PURE__ */ new Error(`Unable to preload CSS for ${dep}`)));
+      });
+    }));
+  }
+  function handlePreloadError(err$2) {
+    const e$1 = new Event("vite:preloadError", { cancelable: true });
+    e$1.payload = err$2;
+    window.dispatchEvent(e$1);
+    if (!e$1.defaultPrevented) throw err$2;
+  }
+  return promise.then((res) => {
+    for (const item of res || []) {
+      if (item.status !== "rejected") continue;
+      handlePreloadError(item.reason);
+    }
+    return baseModule().catch(handlePreloadError);
+  });
+};
 const TILE_CHARS = {
   1: ["🀇", "🀈", "🀉", "🀊", "🀋", "🀌", "🀍", "🀎", "🀏"],
   2: ["🀐", "🀑", "🀒", "🀓", "🀔", "🀕", "🀖", "🀗", "🀘"],
@@ -12658,210 +12717,10 @@ function checkHu(hand) {
   huCache.set(cacheKey, result);
   return result;
 }
-const Tile = reactExports.memo(function Tile2({ tile, selected = false, onClick, faceDown = false, size = "", className = "" }) {
-  const handleClick = reactExports.useCallback(() => {
-    if (onClick && !faceDown && tile) {
-      onClick(tile);
-    }
-  }, [onClick, tile, faceDown]);
-  const tileClass = `tile ${selected ? "selected" : ""} ${size || ""} ${faceDown ? "face-down" : ""} ${className}`.trim();
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(
-    "div",
-    {
-      className: tileClass,
-      "data-suit": tile?.suit?.toString(),
-      onClick: handleClick,
-      role: "button",
-      "aria-pressed": selected,
-      tabIndex: faceDown ? -1 : 0,
-      children: faceDown ? "🀫" : tile ? getTileChar(tile) : ""
-    }
-  );
-});
-const PlayerHand = reactExports.memo(function PlayerHand2({
-  hand,
-  selectedTile,
-  onTileClick,
-  lastDrawn,
-  pengs,
-  gangs,
-  chis,
-  chiOptions = [],
-  selectedChiOption = -1,
-  onChiOptionClick
-}) {
-  const sortedHand = reactExports.useMemo(() => {
-    return [...hand].sort((a, b) => {
-      if (a.suit !== b.suit) return a.suit - b.suit;
-      return a.num - b.num;
-    });
-  }, [hand]);
-  const handleTileClick = reactExports.useCallback((tile) => {
-    onTileClick(tile);
-  }, [onTileClick]);
-  const renderHand = reactExports.useMemo(() => {
-    return sortedHand.map((tile) => /* @__PURE__ */ jsxRuntimeExports.jsx(
-      Tile,
-      {
-        tile,
-        selected: selectedTile?.id === tile.id,
-        onClick: handleTileClick,
-        size: lastDrawn?.id === tile.id ? "large" : ""
-      },
-      tile.id
-    ));
-  }, [sortedHand, selectedTile, handleTileClick, lastDrawn]);
-  const renderMelds = reactExports.useMemo(() => {
-    const melds = [];
-    pengs?.forEach((p, i) => melds.push({ type: "peng", tiles: p, key: `peng-${i}` }));
-    gangs?.forEach((g, i) => melds.push({ type: "gang", tiles: g, key: `gang-${i}` }));
-    chis?.forEach((c, i) => melds.push({ type: "chi", tiles: c, key: `chi-${i}` }));
-    return melds.map((meld) => {
-      if (meld.type === "peng") {
-        return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "meld peng", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(Tile, { tile: meld.tiles[0], size: "small" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(Tile, { tile: meld.tiles[1], size: "small" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(Tile, { tile: meld.tiles[2], size: "small" })
-        ] }, meld.key);
-      }
-      if (meld.type === "gang") {
-        return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "meld gang", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(Tile, { tile: meld.tiles[0], size: "small" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(Tile, { tile: meld.tiles[1], size: "small" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(Tile, { tile: meld.tiles[2], size: "small" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(Tile, { tile: meld.tiles[3], size: "small" })
-        ] }, meld.key);
-      }
-      if (meld.type === "chi") {
-        return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "meld chi", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(Tile, { tile: meld.tiles[0], size: "small" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(Tile, { tile: meld.tiles[1], size: "small" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(Tile, { tile: meld.tiles[2], size: "small" })
-        ] }, meld.key);
-      }
-      return null;
-    });
-  }, [pengs, gangs, chis]);
-  const renderChiOptions = reactExports.useMemo(() => {
-    if (chiOptions.length === 0) return null;
-    return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "chi-options-container", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("p", { children: "选择要吃的牌：" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "chi-options", children: chiOptions.map((option, idx) => /* @__PURE__ */ jsxRuntimeExports.jsx(
-        "button",
-        {
-          className: `chi-option-btn ${selectedChiOption === idx ? "selected" : ""}`,
-          onClick: () => onChiOptionClick?.(idx),
-          children: option.map((t) => `${t.suit}-${t.num}`).join(" + ")
-        },
-        idx
-      )) })
-    ] });
-  }, [chiOptions, selectedChiOption, onChiOptionClick]);
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "player-hand", children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "melds", children: renderMelds }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "hand-tiles", children: renderHand }),
-    renderChiOptions
-  ] });
-});
-const Opponents = reactExports.memo(function Opponents2({ opponents }) {
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "opponents", children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "opponent top-left", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "opponent-name", children: opponents.left?.name }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "opponent-hand horizontal", children: Array.from({ length: opponents.left?.handCount || 13 }).map((_, i) => /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "opponent-tile back" }, i)) })
-    ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "opponent top", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "opponent-name", children: opponents.opposite?.name }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "opponent-hand horizontal", children: Array.from({ length: opponents.opposite?.handCount || 13 }).map((_, i) => /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "opponent-tile back" }, i)) })
-    ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "opponent top-right", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "opponent-name", children: opponents.right?.name }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "opponent-hand horizontal", children: Array.from({ length: opponents.right?.handCount || 13 }).map((_, i) => /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "opponent-tile back" }, i)) })
-    ] })
-  ] });
-});
-const TableArea = reactExports.memo(function TableArea2({ discardedTiles, lastDiscarded }) {
-  const renderTiles = reactExports.useMemo(() => {
-    return discardedTiles.map((tile, index) => /* @__PURE__ */ jsxRuntimeExports.jsx(
-      Tile,
-      {
-        tile,
-        className: lastDiscarded?.id === tile.id ? "last-discarded" : ""
-      },
-      `${tile.id}-${index}`
-    ));
-  }, [discardedTiles, lastDiscarded]);
-  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "table-area", children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "discarded-tiles", children: renderTiles }) });
-});
-const ActionButtons = reactExports.memo(function ActionButtons2({
-  onHu,
-  onPeng,
-  onGang,
-  onChi,
-  onPass,
-  onDraw,
-  canHu,
-  canPeng: canPeng2,
-  canGang: canGang2,
-  canChi: canChi2,
-  isMyTurn,
-  hasDrawn,
-  canPass = false
-}) {
-  const showPass = canPass || canHu || canPeng2 || canGang2 || canChi2;
-  const buttons = reactExports.useMemo(() => {
-    const btns = [];
-    if (isMyTurn && !hasDrawn) {
-      btns.push(
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("button", { className: "action-btn draw-btn", onClick: onDraw, children: [
-          "摸牌 ",
-          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "key-hint", children: "Space" })
-        ] }, "draw")
-      );
-    }
-    if (canHu) {
-      btns.push(
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("button", { className: "action-btn hu-btn", onClick: onHu, children: [
-          "胡 🀅 ",
-          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "key-hint", children: "H" })
-        ] }, "hu")
-      );
-    }
-    if (canPeng2) {
-      btns.push(
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("button", { className: "action-btn peng-btn", onClick: onPeng, children: [
-          "碰 ",
-          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "key-hint", children: "P" })
-        ] }, "peng")
-      );
-    }
-    if (canGang2) {
-      btns.push(
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("button", { className: "action-btn gang-btn", onClick: onGang, children: [
-          "杠 ",
-          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "key-hint", children: "G" })
-        ] }, "gang")
-      );
-    }
-    if (canChi2) {
-      btns.push(
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("button", { className: "action-btn chi-btn", onClick: onChi, children: [
-          "吃 ",
-          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "key-hint", children: "C" })
-        ] }, "chi")
-      );
-    }
-    if (showPass) {
-      btns.push(
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("button", { className: "action-btn pass-btn", onClick: onPass, children: [
-          "过 ",
-          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "key-hint", children: "Esc" })
-        ] }, "pass")
-      );
-    }
-    return btns;
-  }, [isMyTurn, hasDrawn, canHu, canPeng2, canGang2, canChi2, showPass, onHu, onPeng, onGang, onChi, onPass, onDraw]);
-  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "action-buttons", role: "group", "aria-label": "游戏操作", children: buttons });
-});
+const PlayerHand = reactExports.lazy(() => __vitePreload(() => import("./PlayerHand-B_vvjfOn.js"), true ? __vite__mapDeps([0,1,2,3]) : void 0, import.meta.url));
+const Opponents = reactExports.lazy(() => __vitePreload(() => import("./Opponents-BL2X1UdH.js"), true ? __vite__mapDeps([4,5]) : void 0, import.meta.url));
+const TableArea = reactExports.lazy(() => __vitePreload(() => import("./TableArea-C7YIC-yp.js"), true ? __vite__mapDeps([6,1,2,7]) : void 0, import.meta.url));
+const ActionButtons = reactExports.lazy(() => __vitePreload(() => import("./ActionButtons-C92_y8ee.js"), true ? __vite__mapDeps([8,9]) : void 0, import.meta.url));
 function App() {
   const [isLoading, setIsLoading] = reactExports.useState(false);
   const [tiles, setTiles] = reactExports.useState([]);
@@ -13189,7 +13048,7 @@ function App() {
       /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "start-btn", onClick: startGame, children: "开始游戏" }),
       /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "game-info", children: "你将对战 3 个 AI 对手" })
     ] }),
-    gameStarted && !isLoading && /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+    gameStarted && !isLoading && /* @__PURE__ */ jsxRuntimeExports.jsxs(reactExports.Suspense, { fallback: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "loading", children: "加载中..." }), children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx(Opponents, { opponents }),
       /* @__PURE__ */ jsxRuntimeExports.jsx(
         TableArea,
@@ -13249,3 +13108,8 @@ function App() {
 clientExports.createRoot(document.getElementById("root")).render(
   /* @__PURE__ */ jsxRuntimeExports.jsx(reactExports.StrictMode, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(App, {}) })
 );
+export {
+  getTileChar as g,
+  jsxRuntimeExports as j,
+  reactExports as r
+};
